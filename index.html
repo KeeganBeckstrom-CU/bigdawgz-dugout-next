@@ -57,9 +57,9 @@
     <img class="crest" src="assets/img/team-logo.png" alt="BigDawgz logo">
     <div class="who">
       <b id="teamName">BigDawgz 12U</b>
-      <div class="lvl"><span class="track" role="img" aria-label="Level 12, 64% to level 13"><i style="width:64%"></i></span><small>Lv 12</small></div>
+      <div class="lvl"><span class="track" role="img" id="lvlTrack" aria-label="Level progress"><i id="lvlFill" style="width:0%"></i></span><small id="lvlName">Lv 1</small></div>
     </div>
-    <div class="coins" aria-label="1,240 XP"><img src="assets/img/coin.png" alt=""><b>1,240</b></div>
+    <div class="coins" aria-label="Your XP"><img src="assets/img/coin.png" alt=""><b id="xp">0</b></div>
     <button class="mute" id="mute" type="button" aria-label="Mute sound">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff4dc" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="on" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/><path class="off" d="M17 9l5 6M22 9l-5 6"/></svg>
     </button>
@@ -75,6 +75,7 @@
   </nav>
 </div>
 <script src="assets/sound.js"></script>
+<script src="assets/profile.js"></script>
 <script src="assets/park.js"></script>
 </body>
 </html>

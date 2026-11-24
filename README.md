@@ -7,8 +7,13 @@ Basepaths, the new BigDawgz Dugout app, built from scratch.
 ## What's here
 
 - `index.html`: the home screen, the painted Toon Park. Tap a sign, the chest or a bottom-bar item and the camera dives in, then that section's page opens.
-- One folder per section, each a work-in-progress page to build out on its own:
-  `bullpen/` (drills), `scoreboard/` (team), `daily/` (daily task), `locker/`, `cards/`, `play/` (games), `packs/`, `museum/`.
+- `play/`: the Arcade. All 18 games from the old app with the same question banks, levels (Easy, Medium, Hard, Expert), clocks, strikes, XP and high scores, redrawn in the painted style.
+  - `play/index.html` is the game list, `play/game.html?g=trivia` (etc.) plays one game.
+  - `assets/arcade/data.js` holds every question bank and setting, copied from `bigdawgz-dugout`.
+  - `assets/arcade/engine.js` runs the games, `assets/arcade/arcade.css` is the look.
+  - Progress (XP, best scores, high scores) is saved on the device for now (`assets/profile.js`), until accounts come back.
+- One folder per section still to build, each a work-in-progress page:
+  `bullpen/` (drills), `scoreboard/` (team), `daily/` (daily task), `locker/`, `cards/`, `packs/`, `museum/`.
 - `assets/`: styles, scripts and all the painted art (made in Google Flow).
 
 Every link is relative, so the whole folder works at any address.

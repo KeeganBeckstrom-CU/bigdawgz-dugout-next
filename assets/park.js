@@ -34,6 +34,13 @@
   }
   tick(); setInterval(tick, 1000);
 
+  /* XP and level from this device's saved progress */
+  var L = Profile.level();
+  document.getElementById('xp').textContent = Profile.data.xp.toLocaleString();
+  document.getElementById('lvlFill').style.width = L.pct + '%';
+  document.getElementById('lvlName').textContent = 'Lv ' + L.num;
+  document.getElementById('lvlTrack').setAttribute('aria-label', L.n + ', ' + Math.round(L.pct) + '% to ' + (L.next || 'the top'));
+
   /* Mute */
   var mute = document.getElementById('mute');
   function paintMute() { mute.classList.toggle('muted', Sound.muted); mute.setAttribute('aria-label', Sound.muted ? 'Turn sound on' : 'Mute sound'); }

@@ -4,26 +4,43 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#3c1e0c">
-<title>Play · BigDawgz Dugout</title>
+<title>Arcade · BigDawgz Dugout</title>
 <link rel="icon" href="../assets/img/team-logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/wip.css">
+<link rel="stylesheet" href="../assets/arcade/arcade.css">
 </head>
 <body>
-<!-- Play: work in progress. Build this section here. -->
-<main class="app">
-  <img class="fill" src="../assets/img/park.jpg" alt="">
-  <a class="back" href="../"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Park</a>
-  <section class="panel">
-    <img class="hero" src="../assets/img/ball.png" alt="">
-    <div class="tag"><img src="../assets/img/plank.png" alt=""><span>Work in progress</span></div>
-    <h1>Play</h1>
-    <p>Baseball-smarts games. Coming soon:</p>
-    <ul><li><img src="../assets/img/ball.png" alt="">Trivia Blitz</li><li><img src="../assets/img/ball.png" alt="">Steal or Stay</li><li><img src="../assets/img/ball.png" alt="">Cutoff Captain</li><li><img src="../assets/img/ball.png" alt="">Dugout Live with the whole team</li></ul>
-    <a class="home" href="../"><img src="../assets/img/button.png" alt=""><span>Back to the park</span></a>
-  </section>
-</main>
+<img class="bgfill" src="../assets/img/park.jpg" alt="">
+<div class="app">
+  <header class="ghead">
+    <a class="gx" href="../" aria-label="Back to the park"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <span><b>Park</b></span>
+    <span class="coins" aria-label="Your XP"><img src="../assets/img/coin.png" alt=""><b id="xp">0</b></span>
+  </header>
+  <div class="hubtitle"><img src="../assets/img/ball.png" alt=""><div><h1>Arcade</h1><p>Get smarter while you have fun.</p></div></div>
+  <p class="legend"><span class="pips"><i class="on"></i><i class="on"></i><i></i><i></i></span> Lights show the levels you've finished: Easy, Medium, Hard, Expert.</p>
+  <div id="hub"></div>
+</div>
+<script src="../assets/sound.js"></script>
+<script src="../assets/profile.js"></script>
+<script src="../assets/arcade/data.js"></script>
+<script>
+(function () {
+  var A = window.ARC, p = Profile.data;
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function game(k) { return A.GAMES.find(function (g) { return g[0] === k; }); }
+  document.getElementById('xp').textContent = p.xp.toLocaleString();
+  document.getElementById('hub').innerHTML = A.GGROUPS.map(function (gr) {
+    return '<h2 class="grp"><b>' + esc(gr[0]) + '</b><span>' + esc(gr[1]) + '</span></h2><div class="cards">' + gr[2].map(function (k) {
+      var g = game(k), hs = p.hs[k];
+      var pips = [0, 1, 2, 3].map(function (i) { return '<i class="' + (p.best[i ? k + '_' + i : k] != null ? 'on' : '') + '"></i>'; }).join('');
+      return '<a class="gcard" href="game.html?g=' + k + '"><img src="../assets/img/games/' + k + '.png" alt=""><b>' + esc(g[2]) + '</b><small>' + esc(g[3]) + '</small><span class="meta"><span class="pips" aria-label="Levels finished">' + pips + '</span><span class="hs">' + (hs ? hs.s + ' pts' : '') + '</span></span></a>';
+    }).join('') + '</div>';
+  }).join('');
+  document.querySelectorAll('.gcard').forEach(function (a) { a.addEventListener('click', function () { Sound.tone(660, .07, 'sine', .06); }); });
+})();
+</script>
 </body>
 </html>
