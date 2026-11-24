@@ -83,6 +83,18 @@
   function dots(n, t, c) { var h = '<span class="dots">'; for (var i = 0; i < t; i++) h += '<i class="' + c + (i < n ? ' on' : '') + '"></i>'; return h + '</span>'; }
   function sprite(src, x, y, h, flip) { var s = el('div', 'sp', '<img src="' + FX + src + '" alt="">'); s.style.height = 'auto'; s.style.width = h + '%'; at(s, x, y); if (flip) s.firstChild.style.transform = 'scaleX(-1)'; G.st.appendChild(s); return s; }
   function setSprite(s, src) { s.firstChild.src = FX + src; }
+  /* right-handed batter drawn at one steady size: each frame has its own width, so the image is
+     sized from its real pixel width and lined up on the helmet, so the body never jumps between frames */
+  var RB = { 'rb-stance.png': [202, 125], 'rb-load.png': [269, 193], 'rb-contact.png': [363, 104], 'rb-finish.png': [250, 156] };
+  function batterRig(parent, hx, feetY, bw) {
+    var r = el('div', 'rig', '<img src="' + FX + 'rb-stance.png" alt="You, a right-handed hitter, in the box">');
+    r.style.cssText = 'position:absolute;pointer-events:none;transform:translateY(-100%);filter:drop-shadow(0 6px 4px rgba(40,20,8,.35))';
+    r.firstChild.style.cssText = 'display:block;width:100%;height:auto';
+    r.set = function (src) { var f = RB[src]; r.style.width = (bw * f[0] / 202) + '%'; r.style.left = (hx - bw * f[1] / 202) + '%'; r.style.top = feetY + '%'; r.firstChild.src = FX + src; };
+    /* where the barrel's sweet spot is in the contact frame, in stage %: (300,175) of 363x420 */
+    r.barrel = function () { var sr = parent.getBoundingClientRect(), w = sr.width * bw / 100 / 202, x = hx / 100 * sr.width + (300 - 104) * w, y = feetY / 100 * sr.height - (420 - 175) * w; return { x: x / sr.width * 100, y: y / sr.height * 100 }; };
+    r.set('rb-stance.png'); parent.appendChild(r); return r;
+  }
   function timerBar(ms) { var t = el('div', 'timer', '<i></i>'); G.st.appendChild(t); t.firstChild.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: ms, fill: 'forwards' }); return t; }
 
   function finish(raw, xp, label, extra) {
@@ -135,11 +147,11 @@
     /* --- batter's eye scene --- */
     var bat = el('div', 'batcam'); st.insertBefore(bat, G.hud);
     var pitcher = el('div', 'sp', '<img src="' + FX + 'p-set.png" alt="Pitcher">'); pitcher.style.width = '7.5%'; at(pitcher, 49.5, 52.8); bat.appendChild(pitcher);
-    var mitt = el('img', 'mitt'); mitt.src = IMG + 'glove.png'; mitt.alt = ''; mitt.style.width = '9%'; at(mitt, 49.5, 73); bat.appendChild(mitt);
+    var mitt = el('img', 'mitt'); mitt.src = IMG + 'glove.png'; mitt.alt = ''; mitt.style.width = '9%'; at(mitt, 51, 70); bat.appendChild(mitt);
     var shadow = el('div', 'shadow'); shadow.style.cssText += ';width:3%;height:1%;display:none'; bat.appendChild(shadow);
     var ball = el('div', 'ball spin'); ball.style.display = 'none'; bat.appendChild(ball);
-    var batter = el('div', 'sp', '<img src="' + FX + 'rb-stance.png" alt="You, a right-handed hitter, in the box">'); batter.style.width = '25%'; at(batter, 27, 96); bat.appendChild(batter);
-    var flash = el('div', 'flash'); bat.appendChild(flash);
+    var flash = el('div', 'flash');
+    var batter = batterRig(bat, 19.5, 85.5, 31); bat.appendChild(shadow); bat.appendChild(ball); bat.appendChild(flash);
     /* --- whole field camera --- */
     var cam = el('div', 'fieldcam', '<div class="fworld"><img class="parkimg" src="' + IMG + 'park.jpg" alt="The whole field"></div><div class="statcard" id="sc"></div>');
     st.insertBefore(cam, G.hud);
@@ -177,14 +189,14 @@
       if (kind === 'Curveball' && zone === 'hi') zone = 'lo';
       mph = RI(MPH[kind][0], MPH[kind][1]) + lv * 2;
       if (lv === 0) callout(kind, '', 'coming');
-      at(mitt, zone === 'away' ? 58 : 49.5, zone === 'hi' ? 64 : zone === 'lo' ? 80 : 73);
+      at(mitt, zone === 'away' ? 61 : 51, zone === 'hi' ? 57 : zone === 'lo' ? 78 : 70);
       await wait(lv === 0 ? 650 : 300); if (!alive(tok)) return;
       setSprite(pitcher, 'p-kick.png'); await wait(520); if (!alive(tok)) return;
-      setSprite(pitcher, 'p-release.png'); setSprite(batter, 'rb-load.png'); hud(lv <= 1 ? mph : 0);
+      setSprite(pitcher, 'p-release.png'); batter.set('rb-load.png'); hud(lv <= 1 ? mph : 0);
       if (lv === 1) callout(kind, '');
       /* real time to the plate: 46 ft at this speed, stretched a little so kids can react */
       dur = 46 / (mph * 1.467) * 1000 * [2.3, 2.15, 1.75, 1.5][lv];
-      var ex = zone === 'away' ? 59.5 : R(47.5, 51.5), ey = zone === 'hi' ? 63 : zone === 'lo' ? 81.5 : R(70.5, 75);
+      var bp = batter.barrel(), ex = zone === 'away' ? 61 : bp.x + R(-1.5, 1.5), ey = zone === 'hi' ? 54 : zone === 'lo' ? 77 : bp.y + R(-1.5, 1.5);
       path = pitchPath(ex, ey, kind === 'Curveball');
       ball.style.display = 'block'; shadow.style.display = 'block'; live = true; t0 = performance.now(); act.disabled = false; act.textContent = 'SWING!';
       ball.style.setProperty('--spin', (kind === 'Fastball' ? 80 : kind === 'Changeup' ? 220 : 140) + 'ms');
@@ -195,7 +207,7 @@
     }
     function hidePitch() { ball.style.display = 'none'; shadow.style.display = 'none'; if (G.anim) G.anim.cancel(); if (G.sanim) G.sanim.cancel(); }
     function take() {
-      live = false; hidePitch(); sfx.pop(); setSprite(batter, 'rb-stance.png');
+      live = false; hidePitch(); sfx.pop(); batter.set('rb-stance.png');
       if (zone === 'in') {
         if (lv >= 2) { G.outs++; callout('STRIKE!', 'bad', 'Called strike · out'); sfx.bad(); coach('That ' + kind.toLowerCase() + ' was a strike. In this derby <b>a strike you take is an out</b>. Be ready.', 'bad'); }
         else { callout('STRIKE!', 'bad', 'Called'); coach('Right over the plate. Load early so you’re ready to swing at strikes.', 'bad'); }
@@ -205,7 +217,7 @@
     async function swing() {
       if (!live) return; live = false;
       var f = (performance.now() - t0) / dur; if (G.anim) G.anim.pause(); if (G.sanim) G.sanim.pause();
-      setSprite(batter, 'rb-contact.png'); setTimeout(function () { setSprite(batter, 'rb-finish.png'); }, 130);
+      batter.set('rb-contact.png'); setTimeout(function () { batter.set('rb-finish.png'); }, 130);
       S.tone(300, .18, 'sine', .05, 0, 120);
       var w = [.12, .115, .08, .06][lv], d = Math.abs(f - .95), tm = f < .95 ? 'early' : 'late';
       if (zone !== 'in') {
@@ -222,12 +234,14 @@
         return next(900);
       }
       /* contact: timing makes exit velocity and spray, pitch height makes launch angle */
-      var br = ball.getBoundingClientRect(), sr = st.getBoundingClientRect(), cx = (br.left + br.width / 2 - sr.left) / sr.width * 100, cy = (br.top + br.height / 2 - sr.top) / sr.height * 100;
-      hidePitch(); at(flash, cx, cy); flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
+      var bp2 = batter.barrel(), cx = bp2.x, cy = bp2.y;
+      if (G.anim) G.anim.cancel(); if (G.sanim) G.sanim.cancel();
+      ball.style.display = 'block'; ball.style.left = cx + '%'; ball.style.top = cy + '%'; ball.style.transform = 'translate(-50%,-50%) scale(1.5)';
+      await wait(60); hidePitch(); at(flash, cx, cy); flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
       sfx.crack(); crowd(1.2, .12);
       var qual = Math.max(0, 1 - d / (w * 2.4));
       var ev = Math.round(40 + qual * 44 + R(-3, 3) + (kind === 'Fastball' ? 3 : 0) - (lv >= 2 ? lv : 0));
-      var la = Math.round((zone === 'in' ? 18 : 10) + (ey() - 73) * -2.2 + R(-14, 18) + (qual > .7 ? 8 : 0));
+      var la = Math.round((zone === 'in' ? 18 : 10) + (ey() - batter.barrel().y) * -2.2 + R(-14, 18) + (qual > .7 ? 8 : 0));
       if (d > w * 1.6) la += pick([-22, 30]);
       var spray = Math.max(-58, Math.min(58, (tm === 'early' ? -1 : 1) * d / w * 22 + R(-10, 10)));
       await fieldPlay(ev, la, spray);
@@ -291,7 +305,7 @@
     function next(ms) {
       G.timers.push(setTimeout(function () {
         if (!alive(tok)) return;
-        hud(); setSprite(batter, 'rb-stance.png'); at(mitt, 49.5, 73); G.busy = false;
+        hud(); batter.set('rb-stance.png'); at(mitt, 51, 70); G.busy = false;
         if (G.outs >= G.maxOuts) { act.disabled = true; return finish(G.hr, Math.min(60, G.hr * 6 + 4), G.hr + ' home run' + (G.hr === 1 ? '' : 's'), ['Longest ' + G.longest + ' ft', 'Total ' + G.feet + ' ft']); }
         act.disabled = false; act.textContent = 'Pitch!';
       }, ms || 0));
@@ -479,7 +493,7 @@
     var st = stage('bg-bat.jpg'), tok = G.tok;
     G.bat = 0; G.totalBat = lv === 3 ? 9999 : [5, 6, 7, 7][lv]; G.outsMade = 0; G.ks = 0; G.reached = 0; G.maxReach = [99, 99, 3, 1][lv];
     var pitcher = sprite('p-set.png', 49.5, 52.6, 7.5);
-    var batter = sprite('rb-stance.png', 22, 96, 23);
+    var batter = batterRig(st, 15, 86, 27);
     var mitt = el('img', 'mitt'); mitt.src = IMG + 'glove.png'; mitt.alt = ''; st.appendChild(mitt); at(mitt, 49.5, 74);
     var ball = el('div', 'ball'); ball.style.display = 'none'; st.appendChild(ball);
     /* zone: 5x5 grid over the plate, middle 3x3 = strike zone */
@@ -556,7 +570,7 @@
       setTimeout(function () { setSprite(pitcher, 'p-set.png'); }, 500);
       await fly(ball, path, dur, choice === 'CB' ? 'cubic-bezier(.4,0,.8,.6)' : 'linear'); if (!alive(tok)) return;
       B.last.push(choice);
-      if (swing) { setSprite(batter, 'rb-contact.png'); setTimeout(function () { setSprite(batter, 'rb-finish.png'); }, 130); }
+      if (swing) { batter.set('rb-contact.png'); setTimeout(function () { batter.set('rb-finish.png'); }, 130); }
       var outcome;
       if (!swing) { outcome = inZ ? 'strike' : 'ball'; sfx.pop(); }
       else {
@@ -585,12 +599,12 @@
       if (B.s >= 3) { G.outsMade++; G.ks++; sfx.cheer(); callout('STRIKEOUT!', 'gold', 'K'); fireworks(st, 50, 40, 18); learn('Get ahead early, then make the hitter chase.'); return endAB(choice === 'CH' ? 'Struck him out with the changeup!' : 'Strike three!'); }
       if (B.b >= 4) { G.reached++; sfx.bad(); callout('BALL FOUR', 'bad', 'Walk'); learn('Walks hurt. With three balls, throw a strike.'); return endAB('A walk is a free base. <b>Throw strikes when you’re behind.</b>'); }
       if (tip) coach(tip, o === 'ball' ? 'bad' : 'good', 3000);
-      setSprite(batter, 'rb-stance.png'); at(mitt, 49.5, 74);
+      batter.set('rb-stance.png'); at(mitt, 49.5, 74);
       await wait(700); pickPhase();
     }
     async function endAB(tip) {
       coach(tip, '', 3200); hud(); await wait(1500); if (!alive(tok)) return;
-      G.bat++; setSprite(batter, 'rb-stance.png'); at(mitt, 49.5, 74);
+      G.bat++; batter.set('rb-stance.png'); at(mitt, 49.5, 74);
       if (G.reached >= G.maxReach || G.bat >= G.totalBat) return finish(G.outsMade, Math.min(70, G.outsMade * 6 + G.ks * 4), G.outsMade + ' outs · ' + G.ks + ' strikeout' + (G.ks === 1 ? '' : 's'), [G.reached + ' reached base']);
       newBatter(); pickPhase();
     }
