@@ -2474,7 +2474,7 @@ document.addEventListener("input",e=>{if(e.target.id==="mq"){window._mq=e.target
 async function parentKidPw(kid){const pw=($("#kpw_"+kid).value||"");if(pw.length<6){toast("At least 6 characters");return}if(!NET){toast("Password reset");return}if(await parentRpc("kidpw",kid,{pw}))toast("Password reset. Tell your player the new one.")}
 
 /* --- start --- */
-if(NET){S=emptyS();view="auth";render();setTimeout(()=>netBoot(),0)}else{if(!S||!S.players)S=seed();if(S.who&&S.who!=="coach"&&S.who!=="parent"&&!P(S.who))S.who=null;view=S.who?homeView():"pick";render()}
+if(NET){S=emptyS();view="auth";render();setTimeout(()=>netBoot(),0)}else{if(!S||!S.players)S=seed();if(S.who&&S.who!=="coach"&&S.who!=="parent"&&!P(S.who))S.who=null;view=S.who?homeView():"pick";/* test copy: draw after the whole app has loaded */setTimeout(render,0)}
 
 /* ===== HEAD-TO-HEAD: live duels between teammates (backend: supabase/dugout-duel.sql) ===== */
 const DUELG=["play","cut","rbook","rules","send","trivia","who","count","swing","steal"];

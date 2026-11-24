@@ -128,7 +128,7 @@
       var sorts = { hw: function (a, b) { return hwOpen(b).length - hwOpen(a).length; }, last: function (a, b) { return (a.last || '') < (b.last || '') ? -1 : 1; }, week: function (a, b) { return wkN(b) - wkN(a); } };
       var rows = L.slice().sort(sorts[window._ts] || function (a, b) { return b.xp - a.xp; }), mx = Math.max.apply(null, rows.map(function (p) { return p.xp; }).concat([1]));
       var ago = function (p) { return !p.last ? 'never' : p.last === t ? 'today' : p.last === addDays(t, -1) ? 'yesterday' : nice(p.last); };
-      body = '<div class="zcstats"><div><b>' + L.length + '</b><small>Players</small></div><div><b>' + act + '</b><small>Active today</small></div><div><b>' + dn + '/' + (dn + open) + '</b><small>Homework done</small></div></div>' +
+      body = '<div class="tiles zcstats"><div><b>' + L.length + '</b><small>Players</small></div><div><b>' + act + '</b><small>Active today</small></div><div><b>' + dn + '/' + (dn + open) + '</b><small>Homework done</small></div></div>' +
         safe(function () { return filmReviewHTML(); }) + safe(function () { return bpvBtn(); }) +
         safe(function () { return nudgeHTML(); }) +
         zBoard('Progress', 'tap a player', '<div class="fr zsort">' + [['xp', 'Most XP'], ['week', 'Most active'], ['hw', 'Most homework left'], ['last', 'Longest since active']].map(function (s) {
