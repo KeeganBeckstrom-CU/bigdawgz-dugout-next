@@ -12,12 +12,12 @@
       lv: ['10 outs. Slow pitches. The scoreboard tells you what’s coming.', '8 outs. Faster, and the pitch name shows late.', '7 outs. Curveballs, no pitch names. Chasing a ball is an out.', 'Fastest. 3 outs. Keep going as long as you can.'] },
     bases: { name: 'Run the Bases', blurb: 'Read the ball, read the coach. Go, or stay?', unit: 'runs',
       lv: ['5 outs. Lots of time to decide. Coach helps.', '3 outs. Less time.', '3 outs. Quick reads, tougher plays.', 'One wrong read ends it.'] },
-    glove: { name: 'Gold Glove', blurb: 'Get in front of the grounder, then make the right throw.', unit: 'outs made',
+    glove: { name: 'Gold Glove', blurb: 'Play shortstop and second base. Get in front of the grounder, then make the throw.', unit: 'outs made',
       lv: ['10 grounders. Big glove. Runners shown.', '10 grounders. Faster, with hops.', '12 grounders. Fast and tricky. 3 errors and you’re done.', 'Keep going until your first error.'] },
     ace: { name: 'Ace', blurb: 'Pick the pitch, hit your spot, win the count.', unit: 'outs',
       lv: ['5 batters. Big green zone on the meter. Coach gives tips.', '6 batters. Smaller green zone.', '7 batters. Tiny green zone, smarter hitters.', 'Keep going until a batter reaches base.'] },
     corn: { name: 'Can of Corn', blurb: 'Read the fly ball, make the catch, hit your cutoff.', unit: 'catches',
-      lv: ['8 balls. The landing spot is marked.', '8 balls. Only the shadow shows where it’s going.', '10 balls. The shadow shows up late. 3 drops and you’re done.', 'Keep going until your first drop.'] }
+      lv: ['8 balls. The landing spot is marked.', '8 balls. Only the shadow shows where it’s going.', '10 balls. Faster, the shadow shows late, and a ball on the edge of your glove can pop out. 3 drops and you’re done.', 'Fastest, smallest glove, tight release. Keep going until your first drop.'] }
   };
 
   /* ---------- small helpers ---------- */
@@ -114,97 +114,185 @@
   }
 
   /* =========================================================
-     1. HOME RUN DERBY: batter's eye view. Timing + pitch recognition.
+     1. HOME RUN DERBY: batter's eye for the pitch, then the whole field for the ball.
+     Real pitch speeds for 12U, real ball flight (exit velo + launch angle), real fence.
      ========================================================= */
+  /* field math on the overhead park painting: feet from home -> % of the picture */
+  var FLD = { hx: 50, hy: 72.5, ax: .509, ay: -.0545, by: -.202 };
+  function fpt(xft, yft) { return { x: FLD.hx + FLD.ax * xft, y: FLD.hy + FLD.ay * xft + FLD.by * yft }; }
+  function wallY(x) { return 36.5 + .0022 * (x - 50) * (x - 50); }
+  var FIELDERS = { P: [0, 46], C: [0, -4], '1B': [44, 58], '2B': [24, 92], SS: [-24, 92], '3B': [-44, 58], LF: [-72, 138], CF: [0, 158], RF: [72, 138] };
+  function crowd(sec, vol) {
+    var a = S.ctx(); if (!a) return;
+    var n = a.createBufferSource(), b = a.createBuffer(1, a.sampleRate * sec, a.sampleRate), d = b.getChannelData(0);
+    for (var i = 0; i < d.length; i++) { var t = i / d.length; d[i] = (Math.random() * 2 - 1) * Math.min(1, t * 6) * Math.pow(1 - t, 1.4); }
+    n.buffer = b; var f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = .6;
+    var g = a.createGain(); g.gain.value = vol || .25; n.connect(f); f.connect(g); g.connect(a.destination); n.start();
+  }
   function derby(lv) {
     var st = stage('bg-bat.jpg'), tok = G.tok;
-    G.outs = 0; G.maxOuts = [10, 8, 7, 3][lv]; G.hr = 0; G.feet = 0; G.longest = 0; G.p = 0;
-    var pitcher = sprite('p-set.png', 49.5, 52.6, 7.5);
-    var batter = sprite('bat-stance.png', 19, 94, 27, true);
-    var ball = el('div', 'ball'); ball.style.display = 'none'; st.appendChild(ball);
-    function hud() { G.hud.innerHTML = '<div class="sbx"><span class="k"><small>HR</small><b>' + G.hr + '</b></span><span class="k"><small>Outs</small>' + dots(G.outs, G.maxOuts, 'o') + '</span></div><div class="chipz"><span>Longest ' + G.longest + ' ft</span></div>'; }
+    G.outs = 0; G.maxOuts = [10, 8, 7, 3][lv]; G.hr = 0; G.feet = 0; G.longest = 0; G.hrs = [];
+    /* --- batter's eye scene --- */
+    var bat = el('div', 'batcam'); st.insertBefore(bat, G.hud);
+    var pitcher = el('div', 'sp', '<img src="' + FX + 'p-set.png" alt="Pitcher">'); pitcher.style.width = '7.5%'; at(pitcher, 49.5, 52.8); bat.appendChild(pitcher);
+    var mitt = el('img', 'mitt'); mitt.src = IMG + 'glove.png'; mitt.alt = ''; mitt.style.width = '9%'; at(mitt, 49.5, 73); bat.appendChild(mitt);
+    var shadow = el('div', 'shadow'); shadow.style.cssText += ';width:3%;height:1%;display:none'; bat.appendChild(shadow);
+    var ball = el('div', 'ball spin'); ball.style.display = 'none'; bat.appendChild(ball);
+    var batter = el('div', 'sp', '<img src="' + FX + 'bat-stance.png" alt="You, at bat">'); batter.style.width = '27%'; at(batter, 19, 94); batter.firstChild.style.transform = 'scaleX(-1)'; bat.appendChild(batter);
+    var flash = el('div', 'flash'); bat.appendChild(flash);
+    /* --- whole field camera --- */
+    var cam = el('div', 'fieldcam', '<div class="fworld"><img class="parkimg" src="' + IMG + 'park.jpg" alt="The whole field"></div><div class="statcard" id="sc"></div>');
+    st.insertBefore(cam, G.hud);
+    var fw = cam.firstChild, fshadow = el('div', 'shadow'), fball = el('div', 'ball'), fdots = {};
+    fshadow.style.cssText += ';width:2.4%;height:1%'; fball.style.width = '2.4%';
+    Object.keys(FIELDERS).forEach(function (k) { var p = fpt(FIELDERS[k][0], FIELDERS[k][1]); var f = el('div', 'sp fld', '<img src="' + FX + (k === 'C' ? 'fielder' : ['LF', 'CF', 'RF'].indexOf(k) >= 0 ? 'outfielder' : 'fielder') + '.png" alt="">'); f.style.width = '4.2%'; at(f, p.x, p.y + 1.6); f.dataset.k = k; fw.appendChild(f); fdots[k] = f; });
+    fw.appendChild(fshadow); fw.appendChild(fball);
+    var sc = cam.querySelector('#sc');
+    function hud(spd) {
+      G.hud.innerHTML = '<div class="sbx"><span class="k"><small>HR</small><b>' + G.hr + '</b></span><span class="k"><small>Outs</small>' + dots(G.outs, G.maxOuts, 'o') + '</span></div><div class="chipz">' + (spd ? '<span class="mph">' + spd + ' MPH</span>' : '') + '<span>Longest ' + G.longest + ' ft</span></div>';
+    }
     hud();
     G.ctrl.innerHTML = '<button class="bigbtn" id="act">Pitch!</button>';
     var act = document.getElementById('act');
-    var live = false, t0 = 0, dur = 0, kind = '', zone = 'in';
+    var live = false, t0 = 0, dur = 0, kind = '', zone = 'in', mph = 0, path = null;
     var pitches = lv >= 2 ? ['Fastball', 'Fastball', 'Changeup', 'Curveball'] : ['Fastball', 'Fastball', 'Changeup'];
-    coach('Swing at strikes, take the balls. A <b>changeup</b> is slow: wait on it. A <b>fastball</b>: start early.', '', 4200);
+    var MPH = { Fastball: [56, 64], Changeup: [45, 50], Curveball: [46, 51] };
+    coach('Swing at strikes, take the balls. A <b>changeup</b> comes in slower: wait on it. Square it up and it carries over the fence.', '', 4600);
+    crowd(3, .08);
+    /* perspective pitch path: tiny at the release point, fast and big at the plate */
+    function pitchPath(ex, ey, curve) {
+      var rx = 51.6, ry = 45.2, n = 22, pts = [];
+      for (var i = 0; i <= n; i++) {
+        var t = i / n, s = .2 / (1 - .8 * t), w = (s - .2) / .8;
+        var bx = rx + (ex - rx) * w, by = ry + (ey - ry) * w;
+        if (curve) by += Math.sin(w * Math.PI) * -2.2 + w * w * 3;
+        pts.push({ x: bx, y: by, s: s * 1.55, g: 52.8 + (79 - 52.8) * w, t: t });
+      }
+      return pts;
+    }
     async function pitch() {
-      if (live || G.over) return;
-      coachOff(); act.disabled = true; act.textContent = 'Wait…';
+      if (live || G.over || G.busy) return;
+      coachOff(); act.disabled = true; act.textContent = 'Wait…'; G.busy = true;
       kind = pick(pitches); zone = Math.random() < [.74, .7, .64, .6][lv] ? 'in' : pick(['hi', 'lo', 'away']);
       if (kind === 'Curveball' && zone === 'hi') zone = 'lo';
+      mph = RI(MPH[kind][0], MPH[kind][1]) + lv * 2;
       if (lv === 0) callout(kind, '', 'coming');
-      setSprite(pitcher, 'p-kick.png'); await wait(lv === 0 ? 700 : 450); if (!alive(tok)) return;
-      setSprite(pitcher, 'p-release.png');
+      at(mitt, zone === 'away' ? 58 : 49.5, zone === 'hi' ? 64 : zone === 'lo' ? 80 : 73);
+      await wait(lv === 0 ? 650 : 300); if (!alive(tok)) return;
+      setSprite(pitcher, 'p-kick.png'); await wait(520); if (!alive(tok)) return;
+      setSprite(pitcher, 'p-release.png'); hud(lv <= 1 ? mph : 0);
       if (lv === 1) callout(kind, '');
-      dur = ({ Fastball: 1050, Changeup: 1600, Curveball: 1400 })[kind] * [1.1, .9, .78, .66][lv];
-      var ex = zone === 'away' ? 60 : 49.5, ey = zone === 'hi' ? 63 : zone === 'lo' ? 82 : 74;
-      var mid = kind === 'Curveball' ? { x: 50, y: 56, s: .5 } : { x: 49.6, y: 60, s: .7 };
-      ball.style.display = 'block'; live = true; t0 = performance.now(); act.disabled = false; act.textContent = 'SWING!';
-      var path = [{ x: 49.5, y: 49, s: .35 }, mid, { x: ex, y: ey, s: 1.5 }];
-      if (kind === 'Curveball') path = [{ x: 49.5, y: 49, s: .35 }, { x: 50.5, y: 55, s: .6 }, { x: (49.5 + ex) / 2, y: (60 + ey) / 2 - 4, s: 1 }, { x: ex, y: ey, s: 1.5 }];
-      G.anim = ball.animate(path.map(function (p) { return { left: p.x + '%', top: p.y + '%', transform: 'translate(-50%,-50%) scale(' + p.s + ')' }; }), { duration: dur, easing: kind === 'Curveball' ? 'cubic-bezier(.4,0,.8,.6)' : 'linear', fill: 'forwards' });
-      setTimeout(function () { setSprite(pitcher, 'p-set.png'); }, 500);
-      G.timers.push(setTimeout(function () { if (live && alive(tok)) take(); }, dur * 1.08));
+      /* real time to the plate: 46 ft at this speed, stretched a little so kids can react */
+      dur = 46 / (mph * 1.467) * 1000 * [2.3, 1.95, 1.7, 1.5][lv];
+      var ex = zone === 'away' ? 59.5 : R(47.5, 51.5), ey = zone === 'hi' ? 63 : zone === 'lo' ? 81.5 : R(70.5, 75);
+      path = pitchPath(ex, ey, kind === 'Curveball');
+      ball.style.display = 'block'; shadow.style.display = 'block'; live = true; t0 = performance.now(); act.disabled = false; act.textContent = 'SWING!';
+      ball.style.setProperty('--spin', (kind === 'Fastball' ? 80 : kind === 'Changeup' ? 220 : 140) + 'ms');
+      G.anim = ball.animate(path.map(function (p) { return { left: p.x + '%', top: p.y + '%', transform: 'translate(-50%,-50%) scale(' + p.s + ')' }; }), { duration: dur, fill: 'forwards' });
+      G.sanim = shadow.animate(path.map(function (p) { return { left: p.x + '%', top: p.g + '%', transform: 'translate(-50%,-50%) scale(' + p.s * .9 + ')', opacity: .3 + p.t * .5 }; }), { duration: dur, fill: 'forwards' });
+      setTimeout(function () { setSprite(pitcher, 'p-set.png'); }, 600);
+      G.timers.push(setTimeout(function () { if (live && alive(tok)) take(); }, dur + 90));
     }
+    function hidePitch() { ball.style.display = 'none'; shadow.style.display = 'none'; if (G.anim) G.anim.cancel(); if (G.sanim) G.sanim.cancel(); }
     function take() {
-      live = false; ball.style.display = 'none';
+      live = false; hidePitch(); sfx.pop();
       if (zone === 'in') {
-        if (lv >= 2) { G.outs++; callout('STRIKE!', 'bad', 'Looking'); sfx.bad(); coach('That ' + kind.toLowerCase() + ' was a strike. In a derby, <b>a strike you take is an out</b>. Be ready to swing.', 'bad'); }
-        else { callout('STRIKE', 'bad'); coach('That one was right down the middle. Get the bat ready early so you can swing.', 'bad'); }
-      } else { callout('BALL', 'gold', 'Good take!'); sfx.good(); coach('Good eye. That pitch was ' + ({ hi: 'up', lo: 'in the dirt', away: 'way outside' })[zone] + '. <b>Great hitters swing at strikes.</b>', 'good'); learn('Take pitches out of the zone. Only swing at strikes.'); }
-      next();
+        if (lv >= 2) { G.outs++; callout('STRIKE!', 'bad', 'Called strike · out'); sfx.bad(); coach('That ' + kind.toLowerCase() + ' was a strike. In this derby <b>a strike you take is an out</b>. Be ready.', 'bad'); }
+        else { callout('STRIKE!', 'bad', 'Called'); coach('Right over the plate. Load early so you’re ready to swing at strikes.', 'bad'); }
+      } else { callout('BALL', 'gold', 'Good take!'); sfx.good(); coach('Good eye. That was ' + ({ hi: 'up at your eyes', lo: 'in the dirt', away: 'off the plate' })[zone] + '. <b>Great hitters swing at strikes.</b>', 'good'); learn('Take pitches out of the zone. Only swing at strikes.'); }
+      next(900);
     }
     async function swing() {
       if (!live) return; live = false;
-      var f = (performance.now() - t0) / dur; if (G.anim) G.anim.pause();
-      setSprite(batter, 'bat-swing.png'); setTimeout(function () { setSprite(batter, 'bat-finish.png'); }, 110);
-      var w = [.11, .085, .07, .055][lv], d = Math.abs(f - .93), tm = f < .93 ? 'early' : 'late';
+      var f = (performance.now() - t0) / dur; if (G.anim) G.anim.pause(); if (G.sanim) G.sanim.pause();
+      setSprite(batter, 'bat-swing.png'); setTimeout(function () { setSprite(batter, 'bat-finish.png'); }, 100);
+      S.tone(300, .18, 'sine', .05, 0, 120);
+      var w = [.12, .095, .075, .06][lv], d = Math.abs(f - .95), tm = f < .95 ? 'early' : 'late';
       if (zone !== 'in') {
-        ball.style.display = 'none';
-        sfx.bad(); G.outs++; callout('CHASED!', 'bad', 'That was a ball');
-        coach('That pitch was ' + ({ hi: 'up at your eyes', lo: 'in the dirt', away: 'off the plate' })[zone] + '. Chasing gives the pitcher a free out. <b>Swing at strikes.</b>', 'bad', 3600);
+        hidePitch(); sfx.bad(); G.outs++; callout('CHASED!', 'bad', 'Swung at a ball');
+        coach('That pitch was ' + ({ hi: 'up at your eyes', lo: 'in the dirt', away: 'off the plate' })[zone] + '. Chasing gives the pitcher a free out. <b>Swing at strikes.</b>', 'bad', 3800);
         learn('Chasing a ball out of the zone gives the pitcher an easy out.');
-        return next();
+        return next(900);
       }
-      if (d > w * 2.6) {
-        ball.style.display = 'none'; sfx.bad(); G.outs++; callout('WHIFF', 'bad', tm === 'early' ? 'Way early' : 'Too late');
-        coach(tm === 'early' ? 'Way out in front' + (kind === 'Changeup' ? ' on a <b>changeup</b>. Let it travel. Wait, wait, then swing.' : '. Wait a little longer.') : 'Too late' + (kind === 'Fastball' ? ' on the <b>fastball</b>. Start your swing as his arm comes forward.' : '.'), 'bad', 3600);
+      if (d > w * 2.4) {
+        hidePitch(); sfx.bad(); G.outs++; callout('SWING AND A MISS', 'bad', tm === 'early' ? 'Way out in front' : 'Too late');
+        coach(tm === 'early' ? 'Way out in front' + (kind === 'Changeup' ? ' of a <b>changeup</b>. It’s slower: let it travel.' : '. Wait a hair longer.') : 'Late' + (kind === 'Fastball' ? ' on a <b>' + mph + ' mph fastball</b>. Start your swing as his arm comes forward.' : '.'), 'bad', 3800);
         if (kind === 'Changeup' && tm === 'early') learn('A changeup looks like a fastball but comes in slower. Wait on it.');
         if (kind === 'Fastball' && tm === 'late') learn('On a fastball, start your swing early.');
-        return next();
+        return next(900);
       }
-      sfx.crack();
-      var q = d <= w * .45 ? 'barrel' : d <= w ? 'solid' : d <= w * 1.8 ? 'weak' : 'foul';
-      var pull = tm === 'early' ? -1 : 1, tx = 50 + pull * R(8, 30) * (q === 'barrel' ? .6 : 1);
-      var feet = q === 'barrel' ? RI(312, 430) : q === 'solid' ? RI(230, 330) : q === 'weak' ? RI(90, 200) : 0;
-      var isHR = feet >= 300;
-      var br = ball.getBoundingClientRect(), sr = st.getBoundingClientRect(), x0 = (br.left + br.width / 2 - sr.left) / sr.width * 100, y0 = (br.top + br.height / 2 - sr.top) / sr.height * 100;
-      if (q === 'foul') {
-        await fly(ball, arc(x0, y0, pull < 0 ? -10 : 110, 30, 30, 1.4, .4), 650); ball.style.display = 'none';
-        callout('FOUL', 'bad', tm === 'early' ? 'A little early' : 'A little late'); G.outs++;
-        coach('Just got a piece of it. ' + (tm === 'early' ? 'You were early. ' : 'You were late. ') + 'Foul balls count as outs in this derby.', 'bad');
-        return next();
-      }
-      var ty = isHR ? R(18, 30) : q === 'solid' ? R(40, 46) : R(52, 60), apex = isHR ? 55 : q === 'solid' ? 40 : 14;
-      for (var i = 0; i < 6; i++) (function (i) { setTimeout(function () { var tr = el('i', 'trail'); tr.style.left = ball.style.left; tr.style.top = ball.style.top; st.appendChild(tr); setTimeout(function () { tr.remove(); }, 520); }, i * 90); })(i);
-      await fly(ball, arc(x0, y0, tx, ty, apex, 1.5, isHR ? .2 : .35, 18), isHR ? 1300 : 1000, 'cubic-bezier(.2,.6,.4,1)');
-      if (!alive(tok)) return;
-      ball.style.display = 'none';
-      if (isHR) {
-        G.hr++; G.feet += feet; G.longest = Math.max(G.longest, feet);
-        fireworks(st, tx, ty, 34); sfx.cheer(); callout('HOME RUN!', 'gold', feet + ' feet');
-        if (q === 'barrel') coach('Perfect timing on the <b>' + kind.toLowerCase() + '</b>. That’s the barrel!', 'good');
-      } else {
-        G.outs++; callout(q === 'solid' ? 'WARNING TRACK' : 'GROUNDER', 'bad', feet + ' ft · out');
-        coach('Good contact, a little ' + tm + '. ' + (kind === 'Changeup' ? 'On changeups, keep your weight back.' : 'Stay smooth and square up the ball.'), '');
-      }
-      next();
+      /* contact: timing makes exit velocity and spray, pitch height makes launch angle */
+      var br = ball.getBoundingClientRect(), sr = st.getBoundingClientRect(), cx = (br.left + br.width / 2 - sr.left) / sr.width * 100, cy = (br.top + br.height / 2 - sr.top) / sr.height * 100;
+      hidePitch(); at(flash, cx, cy); flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
+      sfx.crack(); crowd(1.2, .12);
+      var qual = Math.max(0, 1 - d / (w * 2.4));
+      var ev = Math.round(38 + qual * 44 + R(-3, 3) + (kind === 'Fastball' ? 3 : 0) - lv);
+      var la = Math.round((zone === 'in' ? 18 : 10) + (ey() - 73) * -2.2 + R(-14, 18) + (qual > .7 ? 8 : 0));
+      if (d > w * 1.6) la += pick([-22, 30]);
+      var spray = Math.max(-58, Math.min(58, (tm === 'early' ? -1 : 1) * d / w * 22 + R(-10, 10)));
+      await fieldPlay(ev, la, spray);
     }
-    function next() {
-      hud(); setSprite(batter, 'bat-stance.png'); act.disabled = false; act.textContent = 'Pitch!';
-      if (G.outs >= G.maxOuts) { G.timers.push(setTimeout(function () { finish(G.hr, Math.min(60, G.hr * 6 + 4), G.hr + ' home run' + (G.hr === 1 ? '' : 's'), ['Longest ' + G.longest + ' ft', 'Total ' + G.feet + ' ft']); }, 1100)); act.disabled = true; }
+    function ey() { return path ? path[path.length - 1].y : 73; }
+    async function fieldPlay(ev, la, spray) {
+      act.disabled = true; act.textContent = '…';
+      var foul = Math.abs(spray) > 45;
+      var v = ev * 1.467, rad = la * Math.PI / 180;
+      var carry = la <= 4 ? 0 : Math.max(0, v * v * Math.sin(2 * rad) / 32.2 * .52);
+      var hang = la <= 4 ? 0 : 2 * v * Math.sin(rad) / 32.2 * .78;
+      var dist = carry, roll = la < 12 ? Math.min(150, v * 1.1) : la < 25 ? 20 : 0;
+      var th = spray * Math.PI / 180, lx = Math.sin(th) * dist, ly = Math.cos(th) * dist;
+      var land = fpt(lx, ly), hr = !foul && la > 14 && land.y < wallY(land.x) - .6;
+      var feet = Math.round(dist * 1.15);
+      /* camera: cut to the whole field, push out from home plate */
+      cam.classList.add('on'); st.classList.add('fieldon'); fball.style.display = 'block'; fshadow.style.display = 'block';
+      fw.animate([{ transform: 'scale(1.9)', transformOrigin: '50% 72%' }, { transform: 'scale(1)', transformOrigin: '50% 72%' }], { duration: 900, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'forwards' });
+      sc.innerHTML = ''; sc.className = 'statcard';
+      Object.keys(fdots).forEach(function (k) { var p = fpt(FIELDERS[k][0], FIELDERS[k][1]); fdots[k].getAnimations().forEach(function (a) { a.cancel(); }); at(fdots[k], p.x, p.y + 1.6); setSprite(fdots[k], ['LF', 'CF', 'RF'].indexOf(k) >= 0 ? 'outfielder.png' : 'fielder.png'); });
+      var ms = Math.max(900, Math.min(3600, (hang || 1) * 1000 * .9));
+      /* who goes after it */
+      var target = { x: lx + Math.sin(th) * roll, y: ly + Math.cos(th) * roll }, best = null, bd = 1e9;
+      Object.keys(FIELDERS).forEach(function (k) { if (k === 'C') return; var F = FIELDERS[k], dd = Math.hypot(F[0] - (la < 12 ? target.x * .55 : lx), F[1] - (la < 12 ? target.y * .55 : ly)); if (dd < bd) { bd = dd; best = k; } });
+      var speed = 19, reachFt = speed * (la < 12 ? ms / 1000 * .7 : hang * .95) + 6;
+      var caught = !hr && !foul && (la < 12 ? bd < reachFt + 10 : bd < reachFt && la > 12);
+      if (la > 55) caught = !foul;
+      /* the ball's flight: shadow on the ground, ball up in the air */
+      var n = 26, sp = [], bp = [];
+      for (var i = 0; i <= n; i++) {
+        var t = i / n, gx = lx * t, gy = ly * t, g = fpt(gx, gy), hft = la > 4 ? Math.pow(v * Math.sin(rad), 2) / 64.4 * .6 * 4 * t * (1 - t) : 0;
+        sp.push({ x: g.x, y: g.y, s: 1 });
+        bp.push({ x: g.x, y: g.y - hft * .16, s: 1 + hft / 60 });
+      }
+      if (la <= 12) { var gEnd = fpt(target.x * .55, target.y * .55); sp = [{ x: FLD.hx, y: FLD.hy, s: 1 }, { x: gEnd.x, y: gEnd.y, s: 1 }]; bp = [{ x: FLD.hx, y: FLD.hy, s: 1 }, { x: gEnd.x, y: gEnd.y - .4, s: 1 }]; }
+      if (best && !foul) { var bf = FIELDERS[best], go = la < 12 ? fpt(target.x * .55, target.y * .55) : caught ? land : fpt(bf[0] + (lx - bf[0]) * .7, bf[1] + (ly - bf[1]) * .7); fdots[best].firstChild.style.transform = go.x < parseFloat(fdots[best].style.left) ? '' : 'scaleX(-1)'; fly(fdots[best], [{ x: parseFloat(fdots[best].style.left), y: parseFloat(fdots[best].style.top), s: 1 }, { x: go.x, y: go.y + 1.6, s: 1 }], ms * .92, 'ease-out'); }
+      if (hr) { G.timers.push(setTimeout(function () { if (alive(tok)) crowd(2.6, .3); }, ms * .55)); }
+      fly(fshadow, sp, ms, la < 12 ? 'ease-out' : 'linear');
+      await fly(fball, bp, ms, la < 12 ? 'ease-out' : 'linear'); if (!alive(tok)) return;
+      var res, tip;
+      if (foul) { res = 'FOUL BALL'; tip = 'Way ' + (spray < 0 ? 'early. You pulled it foul.' : 'late. You pushed it foul.') + ' Foul balls are outs in this derby.'; }
+      else if (hr) { res = 'HOME RUN!'; tip = la >= 22 && la <= 35 ? 'That’s the sweet spot: <b>' + la + '°</b> launch angle with a hard swing.' : 'Got it over the fence!'; }
+      else if (la <= 12) { res = caught ? 'GROUNDOUT' : 'GROUND BALL SINGLE'; tip = 'Launch angle <b>' + la + '°</b>: that’s a ground ball. ' + (ey() > 76 ? 'Low pitches turn into grounders.' : 'Get the barrel under the ball a little more.'); learn('Ground balls (under 10°) can’t leave the park. Home runs are usually 20–35°.'); }
+      else if (la > 50) { res = 'POP-UP'; tip = 'Launch angle <b>' + la + '°</b> is a pop-up. ' + (ey() < 68 ? 'That pitch was up. ' : '') + 'You got too far under it.'; learn('Pop-ups (over 50°) go up but not out. Stay through the middle of the ball.'); }
+      else if (caught) { res = la < 25 ? 'LINEOUT' : 'FLY OUT'; tip = 'Hit hard, but the ' + ({ LF: 'left fielder', CF: 'center fielder', RF: 'right fielder', SS: 'shortstop', '2B': 'second baseman', '3B': 'third baseman', '1B': 'first baseman', P: 'pitcher' })[best] + ' ran it down. ' + (ev < 70 ? 'More bat speed: <b>' + ev + ' mph</b> exit velo needs to be 72+.' : ''); }
+      else { res = la < 25 ? 'LINE DRIVE HIT' : 'OFF THE WALL'; tip = 'Good contact, ' + ev + ' mph. A little more lift or bat speed and it’s gone.'; }
+      if (caught && best) { setSprite(fdots[best], ['LF', 'CF', 'RF'].indexOf(best) >= 0 ? 'outfielder.png' : 'fielder.png'); fball.style.display = 'none'; sfx.pop(); }
+      if (hr) { fball.style.display = 'none'; G.hr++; G.feet += feet; G.longest = Math.max(G.longest, feet); G.hrs.push(feet); fireworks(fw, land.x, Math.min(land.y, wallY(land.x) - 2), 36); fireworks(fw, land.x + R(-10, 10), land.y - 6, 20); sfx.cheer(); }
+      else G.outs++;
+      hud(); fshadow.style.display = 'none';
+      callout(res, hr ? 'gold' : 'bad', hr ? feet + ' feet' : '');
+      sc.innerHTML = '<div><small>Exit velo</small><b>' + ev + '<i>mph</i></b></div><div><small>Launch</small><b>' + la + '<i>°</i></b></div><div><small>Distance</small><b>' + (foul ? '—' : feet) + '<i>ft</i></b></div>';
+      sc.className = 'statcard on';
+      coach(tip, hr ? 'good' : '', 4200);
+      await wait(hr ? 2600 : 2200); if (!alive(tok)) return;
+      cam.classList.remove('on'); st.classList.remove('fieldon'); fball.style.display = 'none'; sc.className = 'statcard';
+      next(200);
+    }
+    function next(ms) {
+      G.timers.push(setTimeout(function () {
+        if (!alive(tok)) return;
+        hud(); setSprite(batter, 'bat-stance.png'); at(mitt, 49.5, 73); G.busy = false;
+        if (G.outs >= G.maxOuts) { act.disabled = true; return finish(G.hr, Math.min(60, G.hr * 6 + 4), G.hr + ' home run' + (G.hr === 1 ? '' : 's'), ['Longest ' + G.longest + ' ft', 'Total ' + G.feet + ' ft']); }
+        act.disabled = false; act.textContent = 'Pitch!';
+      }, ms || 0));
     }
     act.addEventListener('click', function (e) { e.stopPropagation(); if (live) swing(); else pitch(); });
     st.addEventListener('pointerdown', function (e) { if (live && !e.target.closest('button')) swing(); });
@@ -314,34 +402,37 @@
   function glove(lv) {
     var st = stage('bg-field.jpg'), tok = G.tok;
     G.n = 0; G.total = lv === 3 ? 9999 : [10, 10, 12, 12][lv]; G.outsMade = 0; G.errors = 0; G.maxErr = [99, 99, 3, 1][lv];
-    var fielder = sprite('fielder.png', 50, 93, 26); var fx = 50;
+    var fielder = sprite('fielder.png', 38, 93, 26); var fx = 38;
+    var POS = [{ k: 'SS', n: 'Shortstop', num: 6, home: 38, lo: 16, hi: 58 }, { k: '2B', n: 'Second base', num: 4, home: 62, lo: 42, hi: 84 }], pos = POS[0];
     var ball = el('div', 'ball'); ball.style.display = 'none'; st.appendChild(ball);
     var shadow = el('div', 'shadow'); shadow.style.cssText += ';width:6%;height:2%;display:none'; st.appendChild(shadow);
     var BP = { 1: [91, 52], 2: [50, 99], 3: [9, 52], 4: [49, 39.5] };
-    function hud(sit) { G.hud.innerHTML = '<div class="sbx"><span class="k"><small>Outs made</small><b>' + G.outsMade + '</b></span>' + (G.maxErr < 99 ? '<span class="k"><small>Errors</small>' + dots(G.errors, G.maxErr, 'o') + '</span>' : '') + '</div><div class="chipz">' + (sit ? '<span>' + sit.o + ' out' + (sit.o === 1 ? '' : 's') + '</span><span>' + runText(sit.r) + '</span>' : '') + '</div>'; }
+    function hud(sit) { G.hud.innerHTML = '<div class="sbx"><span class="k"><small>Outs made</small><b>' + G.outsMade + '</b></span>' + (G.maxErr < 99 ? '<span class="k"><small>Errors</small>' + dots(G.errors, G.maxErr, 'o') + '</span>' : '') + '</div><div class="chipz"><span class="mph">You: ' + pos.n + ' (' + pos.num + ')</span>' + (sit ? '<span>' + sit.o + ' out' + (sit.o === 1 ? '' : 's') + '</span><span>' + runText(sit.r) + '</span>' : '') + '</div>'; }
     function runText(r) { var n = [1, 2, 3].filter(function (b) { return r[b - 1]; }); return n.length ? (n.length === 3 ? 'Bases loaded' : 'Runner' + (n.length > 1 ? 's' : '') + ' on ' + n.map(function (b) { return ['1st', '2nd', '3rd'][b - 1]; }).join(' & ')) : 'Nobody on'; }
     function answer(sit) {
       var r = sit.r, o = sit.o;
       if (o === 2) return [r[0] ? 2 : 1, r[0] ? 'Two outs and a force at second: take the short, easy throw for the third out. (First is OK too.)' : 'Two outs: just get the sure out at first.', r[0] ? [1, 2] : [1]];
       if (r[0] && r[1] && r[2]) return [4, 'Bases loaded, less than two outs: get the force at home and stop the run.', [4]];
-      if (r[0]) return [2, 'Runner on first, less than two outs: start the double play at second.', [2]];
+      if (r[0]) return [2, 'Runner on first, less than two outs: start the double play at second' + (pos.k === '2B' ? '. Flip it to the shortstop covering the bag.' : '. Feed the second baseman covering the bag.'), [2]];
       if (r[2] && sit.inf) return [4, 'Infield is playing in with a runner on third: throw home to stop the run.', [4]];
       return [1, r[1] || r[2] ? 'No force at second. Look the runner back, then get the out at first.' : 'Nobody on: get the sure out at first.', [1]];
     }
     var reach = [12, 10, 8, 7][lv];
     st.addEventListener('pointermove', move); st.addEventListener('pointerdown', move);
-    function move(e) { var r = st.getBoundingClientRect(); G.want = Math.max(10, Math.min(90, (e.clientX - r.left) / r.width * 100)); }
-    G.want = 50;
-    function loop() { if (!G || G.over) return; var d = G.want - fx, sp = [1.3, 1.5, 1.7, 1.9][lv]; fx += Math.max(-sp, Math.min(sp, d)); fielder.style.left = fx + '%'; G.raf = requestAnimationFrame(loop); }
+    function move(e) { if (G.frozen) return; var r = st.getBoundingClientRect(); G.want = Math.max(10, Math.min(90, (e.clientX - r.left) / r.width * 100)); }
+    G.want = 38;
+    function loop() { if (!G || G.over) return; if (G.frozen) { G.raf = requestAnimationFrame(loop); return; } var d = G.want - fx, sp = [1.3, 1.5, 1.7, 1.9][lv]; fx += Math.max(-sp, Math.min(sp, d)); fielder.style.left = fx + '%'; G.raf = requestAnimationFrame(loop); }
     loop();
     async function grounder() {
       if (G.over) return;
+      pos = POS[Math.floor(G.n / 3) % 2];
+      if (G.n % 3 === 0) { G.frozen = true; fielder.animate([{ left: fx + '%' }, { left: pos.home + '%' }], { duration: 500, easing: 'ease-in-out' }); fx = pos.home; G.want = fx; fielder.style.left = fx + '%'; await wait(520); G.frozen = false; callout(pos.n.toUpperCase(), 'gold', 'You’re at ' + pos.n.toLowerCase() + ' (' + pos.num + ')'); await wait(900); if (!alive(tok)) return; }
       var sit = { r: [Math.random() < .45, Math.random() < .3, Math.random() < .25], o: RI(0, 2) }; sit.inf = sit.r[2] && sit.o < 2 && Math.random() < .5;
       hud(sit); G.ctrl.innerHTML = '<p class="hint">Slide your finger to get in front of the ball</p>';
       coach('<b>' + sit.o + ' out' + (sit.o === 1 ? '' : 's') + ', ' + runText(sit.r).toLowerCase() + (sit.inf ? ', infield in' : '') + '.</b> Know where you’re throwing before the pitch.', '', lv === 0 ? 2600 : 1800);
       await wait(lv === 0 ? 2200 : 1500); if (!alive(tok)) return;
       sfx.crack();
-      var tx = R(18, 82), dur = R(1500, 1900) * [1.15, .95, .8, .7][lv], hops = lv === 0 ? 2 : RI(2, 4);
+      var tx = R(pos.lo, pos.hi), dur = R(1500, 1900) * [1.15, .95, .8, .7][lv], hops = lv === 0 ? 2 : RI(2, 4);
       ball.style.display = 'block'; shadow.style.display = 'block';
       var pts = [], n = 24;
       for (var i = 0; i <= n; i++) { var t = i / n, x = 49 + (tx - 49) * t, y = 41 + (88 - 41) * t, hop = Math.abs(Math.sin(t * Math.PI * hops)) * (6 - t * 4); pts.push({ x: x, y: y - hop, s: .5 + t * 1.1 }); }
@@ -361,6 +452,7 @@
     }
     async function throwPick(sit) {
       var ans = answer(sit), win = [5000, 3500, 2600, 2000][lv];
+      G.frozen = true;
       G.ctrl.innerHTML = '<div class="bases">' + [[1, '1st'], [2, '2nd'], [3, '3rd'], [4, 'Home']].map(function (b) { return '<button data-b="' + b[0] + '"><i></i>' + b[1] + '</button>'; }).join('') + '</div>';
       coach('Where’s the throw?', '', 0); var bar = timerBar(win);
       var pickB = await new Promise(function (res) { G.ctrl.querySelectorAll('[data-b]').forEach(function (b) { b.onclick = function () { res(+b.getAttribute('data-b')); }; }); G.timers.push(setTimeout(function () { res(0); }, win)); });
@@ -372,9 +464,10 @@
       else { G.errors += lv >= 2 ? 1 : 0; sfx.bad(); callout(pickB ? 'SAFE' : 'TOO SLOW', 'bad'); coach('<b>Throw to ' + ['', 'first', 'second', 'third', 'home'][ans[0]] + '.</b> ' + esc(ans[1]), 'bad', 4400); }
       learn(ans[1]);
       await wait(1200);
+      G.want = fx; G.frozen = false;
     }
     G.ctrl.innerHTML = '<button class="bigbtn wood" id="nx">Play ball!</button>'; document.getElementById('nx').onclick = grounder; hud();
-    coach('You’re up the middle. <b>Slide your finger</b> to get in front of each grounder, then make the right throw.', '', 4200);
+    coach('You’ll play <b>shortstop (6)</b> and <b>second base (4)</b>. <b>Slide your finger</b> to get in front of each grounder, then make the right throw.', '', 4200);
   }
 
   /* =========================================================
@@ -513,11 +606,12 @@
     var shadow = el('div', 'shadow'); shadow.style.cssText += ';width:8%;height:2.6%;display:none'; st.appendChild(shadow);
     var mark = el('div', 'target'); mark.style.display = 'none'; st.appendChild(mark);
     function hud() { G.hud.innerHTML = '<div class="sbx"><span class="k"><small>Catches</small><b>' + G.catches + '</b></span>' + (G.maxDrop < 99 ? '<span class="k"><small>Drops</small>' + dots(G.drops, G.maxDrop, 'o') + '</span>' : '') + '</div><div class="chipz"><span>Ball ' + (G.n + 1) + (G.total < 999 ? ' of ' + G.total : '') + '</span></div>'; }
-    function move(e) { var r = st.getBoundingClientRect(); G.want = { x: Math.max(8, Math.min(92, (e.clientX - r.left) / r.width * 100)), y: Math.max(58, Math.min(96, (e.clientY - r.top) / r.height * 100 + 8)) }; }
+    function move(e) { if (G.frozen) return; var r = st.getBoundingClientRect(); G.want = { x: Math.max(8, Math.min(92, (e.clientX - r.left) / r.width * 100)), y: Math.max(58, Math.min(96, (e.clientY - r.top) / r.height * 100 + 8)) }; }
     st.addEventListener('pointermove', move); st.addEventListener('pointerdown', move);
-    var spd = [.55, .55, .6, .62][lv];
+    var spd = [.55, .55, .5, .48][lv];
     function loop() {
       if (!G || G.over) return;
+      if (G.frozen) { G.raf = requestAnimationFrame(loop); return; }
       var dx = G.want.x - fx, dy = G.want.y - fy, d = Math.hypot(dx, dy);
       if (d > .3) { var k = Math.min(1, spd / d); fx += dx * k; fy += dy * k; of.firstChild.style.transform = dx > 0 ? 'scaleX(-1)' : ''; }
       var sc = .7 + (fy - 58) / 38 * .3; of.style.left = fx + '%'; of.style.top = fy + '%'; of.style.width = 17 * sc + '%';
@@ -526,7 +620,7 @@
     loop();
     async function flyBall() {
       if (G.over) return; hud(); G.ctrl.innerHTML = '<p class="hint">Drag to run to the ball</p>';
-      var lx = R(14, 86), ly = R(62, 90), dur = R(2600, 3200) * [1.15, 1, .9, .82][lv];
+      var lx = R(14, 86), ly = R(62, 90), dur = R(2600, 3200) * [1.15, 1, .84, .74][lv];
       var kind = ly < 70 ? 'shallow' : ly > 84 ? 'deep' : 'medium';
       await wait(600); if (!alive(tok)) return; sfx.crack();
       ball.style.display = 'block'; shadow.style.display = 'none';
@@ -537,19 +631,20 @@
       if (lv <= 1) G.timers.push(setTimeout(function () { if (alive(tok)) coach(kind === 'deep' ? 'It’s carrying! <b>Turn and run back</b> first. Don’t backpedal.' : kind === 'shallow' ? 'It’s dying in front of you. <b>Charge in!</b>' : 'Watch the shadow. <b>Get under it</b> and catch it in front of your face.', '', 2200); }, 420));
       await fly(ball, pts, dur, 'cubic-bezier(.3,.1,.6,1)'); if (!alive(tok)) return;
       shadow.style.display = 'none'; mark.style.display = 'none';
-      var dist = Math.hypot(fx - lx, (fy - 3 - ly) * .7), caught = dist <= [11, 9.5, 8.5, 8][lv];
-      ball.style.display = 'none'; G.n++;
+      var dist = Math.hypot(fx - lx, (fy - 3 - ly) * .7), rad = [11, 9, 6.2, 5.2][lv], caught = dist <= rad, bobble = false;
+      if (caught && lv >= 2 && dist > rad * .7 && Math.random() < .55) { caught = false; bobble = true; }
+      ball.style.display = 'none'; G.n++; G.frozen = true; G.want = { x: fx, y: fy };
       if (caught) {
         G.catches++; sfx.pop(); callout('CAN OF CORN!', 'gold');
         if (kind === 'deep') learn('On a ball over your head, turn and run. Don’t backpedal.');
         if (kind === 'shallow') learn('On a ball in front of you, charge it hard.');
         await afterCatch();
       } else {
-        G.drops++; sfx.bad(); callout('IT DROPS!', 'bad', 'Base hit');
-        coach(kind === 'deep' ? 'That one was <b>over your head</b>. First step is back: turn and run.' : kind === 'shallow' ? 'That one was <b>in front of you</b>. Charge in fast.' : 'Read it off the bat and <b>run to the shadow</b>.', 'bad', 3200);
+        G.drops++; sfx.bad(); callout(bobble ? 'OFF THE GLOVE!' : 'IT DROPS!', 'bad', bobble ? 'Catch it in the middle of your glove' : 'Base hit');
+        if (bobble) { coach('You got there, but it hit the <b>edge of your glove</b>. Get all the way under it, then catch it with two hands.', 'bad', 3200); learn('Get under the ball and catch it with two hands, not on the run at the edge of your glove.'); } else coach(kind === 'deep' ? 'That one was <b>over your head</b>. First step is back: turn and run.' : kind === 'shallow' ? 'That one was <b>in front of you</b>. Charge in fast.' : 'Read it off the bat and <b>run to the shadow</b>.', 'bad', 3200);
         await hitCutoff();
       }
-      hud();
+      G.frozen = false; G.want = { x: fx, y: fy }; hud();
       if (G.drops >= G.maxDrop || G.n >= G.total) return setTimeout(function () { finish(G.catches, Math.min(60, G.catches * 5 + G.throws * 3), G.catches + ' catch' + (G.catches === 1 ? '' : 'es'), [G.throws + ' right throw' + (G.throws === 1 ? '' : 's'), G.drops + ' dropped']); }, 1000);
       G.ctrl.innerHTML = '<button class="bigbtn wood" id="nx">Next fly ball</button>'; document.getElementById('nx').onclick = flyBall;
     }
@@ -576,9 +671,28 @@
       var p = await new Promise(function (res) { G.ctrl.querySelectorAll('[data-b]').forEach(function (b) { b.onclick = function () { res(+b.getAttribute('data-b')); }; }); G.timers.push(setTimeout(function () { res(0); }, win)); });
       if (!alive(tok)) return; bar.remove();
       G.ctrl.querySelectorAll('[data-b]').forEach(function (b) { var v = +b.getAttribute('data-b'); if (v === ans) b.classList.add('ok'); else if (v === p) b.classList.add('no'); b.disabled = true; });
-      var BP = { 1: [72, 44], 2: [49, 41.5], 3: [27, 44], 4: [49, 45] };
-      if (p) { ball.style.display = 'block'; sfx.whoosh(); await fly(ball, arc(fx, fy - 8, BP[p][0], BP[p][1], 16, 1.1, .35), 750); ball.style.display = 'none'; }
-      if (p === ans) { G.throws++; sfx.good(); coach('<b>Right throw!</b> ' + esc(why), 'good', 3600); }
+      var BP = { 1: [72, 44], 2: [49, 41.5], 3: [27, 44], 4: [49, 45] }, cut = function (b) { return { x: fx + (BP[b][0] - fx) * .5, y: (fy - 8) + (BP[b][1] - fy + 8) * .5 }; };
+      var rel = 2;
+      if (p) {
+        /* release: stop the needle in the green. Longer throws have a smaller green zone. */
+        var far = Math.hypot(BP[p][0] - fx, BP[p][1] - fy) / 60, green = Math.max(.05, [.2, .15, .1, .08][lv] - far * .05);
+        coach('<b>Release!</b> Stop the needle in the green for a strong, accurate throw.', '', 0);
+        G.ctrl.innerHTML = '<button class="bigbtn" id="rel">Throw!</button>';
+        var m = el('div', 'meter', '<i></i>'); st.appendChild(m); var needle = m.firstChild, t0 = performance.now(), per = [1400, 1150, 950, 820][lv], v = 0;
+        m.style.background = 'linear-gradient(90deg,#b8432f 0,#e8a21c ' + (50 - green * 100 - 14) + '%,#5cc46a ' + (50 - green * 100) + '%,#5cc46a ' + (50 + green * 100) + '%,#e8a21c ' + (50 + green * 100 + 14) + '%,#b8432f 100%)';
+        (function tick() { if (!m.isConnected) return; var t = ((performance.now() - t0) % per) / per; v = t < .5 ? t * 2 : 2 - t * 2; needle.style.left = v * 100 + '%'; G.raf2 = requestAnimationFrame(tick); })();
+        var miss = await new Promise(function (res) { document.getElementById('rel').onclick = function () { res(Math.abs(v - .5)); }; G.timers.push(setTimeout(function () { res(.5); }, 5000)); });
+        cancelAnimationFrame(G.raf2); m.remove(); if (!alive(tok)) return;
+        rel = miss <= green ? 0 : miss <= green + .14 ? 1 : 2;
+        ball.style.display = 'block'; sfx.whoosh();
+        if (rel === 0) await fly(ball, arc(fx, fy - 8, BP[p][0], BP[p][1], 10, 1.1, .35), 650);
+        else if (rel === 1) { var cp = cut(p); await fly(ball, arc(fx, fy - 8, cp.x, cp.y, 6, 1.1, .6).concat(arc(cp.x, cp.y, BP[p][0], BP[p][1], 3, .6, .35, 6).slice(1)), 950); }
+        else await fly(ball, arc(fx, fy - 8, BP[p][0] + pick([-14, 14]), BP[p][1] - 8, 24, 1.1, .3), 800);
+        ball.style.display = 'none';
+      }
+      var relTxt = ['A strike right on the bag!', 'One hop through the cutoff man. Still a good throw.', 'Wild throw! It sailed over the cutoff man.'][rel];
+      if (p === ans && rel < 2) { G.throws++; sfx.good(); callout(rel ? 'GOOD THROW' : 'ON THE BAG!', 'gold'); coach('<b>' + relTxt + '</b> ' + esc(why), 'good', 3800); }
+      else if (p === ans) { sfx.bad(); callout('WILD THROW', 'bad'); coach('<b>Right base, but ' + relTxt.toLowerCase() + '</b> Hit your cutoff man chest-high and runners can’t move up.', 'bad', 4400); learn('Throw through your cutoff man, chest-high. A wild throw lets runners take extra bases.'); }
       else { sfx.bad(); coach('<b>The throw goes to ' + ['', 'first', 'second', 'third', 'home'][ans] + '.</b> ' + esc(why), 'bad', 4600); }
       learn(why.split('.')[0] + '.');
       await wait(1400);
