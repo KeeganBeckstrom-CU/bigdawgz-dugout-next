@@ -1,0 +1,96 @@
+/* Painted park theme for the full team app (app/index.html).
+   The app's own code and screens are unchanged; this sheet repaints them in the park style:
+   warm wood panels, gold buttons, cream text, the painted park behind everything. */
+html.paint,html.paint:root,html.paint body{
+  --bg:#6b3f1e!important;--bg2:#3c1e0c!important;--card:#7a4826!important;--card2:#8a5530!important;--deep:#4a2a14!important;
+  --line:rgba(255,227,168,.26)!important;--ink:#fff4dc!important;--mute:#f3d9ae!important;--amber:#ffd35a!important;--gold:#c48a1c!important;
+  --sky:#7fd0ff!important;--grass:#5cc46a!important;--red:#e0604a!important;--blk:#2a1406!important;--trim:#ffd35a!important;
+  --fd:"Fredoka",system-ui,sans-serif!important;--fb:"Fredoka",system-ui,sans-serif!important;
+  --wood:linear-gradient(180deg,#8a5530,#6b3f1e);--rim:inset 0 0 0 2px #a8703f,inset 0 0 0 4px #5a3418,0 5px 12px rgba(40,20,8,.32);
+}
+html.paint{background:#3c1e0c!important}
+html.paint body{background:#3c1e0c!important;background-image:none!important;font-family:"Fredoka",system-ui,sans-serif!important;font-weight:500;color:#fff4dc}
+html.paint body::before{content:"";position:fixed;inset:-40px;z-index:-1;background:url(../assets/img/park.jpg) center/cover no-repeat;filter:blur(20px) saturate(1.1) brightness(.6);pointer-events:none}
+html.paint h1,html.paint h2,html.paint .brand,html.paint .sec,html.paint .cta,html.paint .ph h1{font-family:"Fredoka",system-ui,sans-serif!important;font-weight:700!important;letter-spacing:0!important;text-shadow:0 2px 0 #4a2a14}
+html.paint b,html.paint strong{font-weight:700}
+html.paint .sec span{font-family:"Fredoka",system-ui,sans-serif!important;font-weight:600!important;color:#ffe27a!important}
+html.paint .brand{color:#ffe27a!important;text-shadow:0 2px 0 #4a2a14!important}
+
+/* panels: wood with a dark rim */
+html.paint :is(.card,.drow,.rowb,.form,.pc,.tiles>div,.tiles>button,.hero,.hw,.cltile,.ddc,.tip,.note2,.shout,.cat,.goal,.lcard,.pcard,.pstep,.prow2,.film,.ppsec,.xtc,.wsum>div,.ptab2,.scrmode button,.trr,.cardsbtn,.bdent button,.fdsel,.fdplan,.empty,.step>div>.drow,.pphead>div,.ibc,.mhero,.fhero){
+  background:var(--wood)!important;border:0!important;box-shadow:var(--rim)!important;color:#fff4dc}
+html.paint :is(.card,.drow,.rowb,.hw,.prow2){border-left:0!important;box-shadow:inset 4px 0 0 var(--c,#ffd35a),var(--rim)!important}
+html.paint :is(.card,.drow,.rowb,.hw,.prow2,.pc,.cltile,.lcard):active{transform:scale(.98)}
+html.paint :is(.hero,.fhero,.mhero){background:radial-gradient(120% 90% at 50% 0%,rgba(255,226,122,.2),transparent 60%),var(--wood)!important;box-shadow:inset 0 0 0 2.5px #ffd35a,inset 0 0 0 5px #5a3418,0 6px 14px rgba(40,20,8,.35)!important}
+html.paint :is(.card small,.rowb small,.drow small,.form label,.tiles small,.hero small,.pgs,.fine,.tag){color:#f3d9ae!important}
+html.paint .tiles b,html.paint .pphead b{font-family:"Fredoka",sans-serif!important;font-weight:700!important;color:#ffe27a!important}
+
+/* sheets and pop-ups */
+html.paint #sheet{background:rgba(30,14,4,.55)!important;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+html.paint .sheet{background:repeating-linear-gradient(176deg,rgba(255,255,255,.025) 0 6px,rgba(0,0,0,.03) 6px 13px),linear-gradient(180deg,#8a5530,#6b3f1e 40%,#5e3519)!important;border:0!important;box-shadow:inset 0 0 0 3px #a8703f,inset 0 0 0 6px #5a3418,0 -10px 30px rgba(40,20,8,.5)!important}
+html.paint .sheet .x{background:rgba(40,20,8,.45)!important}
+
+/* buttons */
+html.paint .cta,html.paint button.cta,html.paint a.cta{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important;border:0!important;border-radius:18px!important;box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 4px 0 #9a5a10,0 8px 14px rgba(40,20,8,.35)!important;text-shadow:none!important}
+html.paint .cta:active{transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 1px 0 #9a5a10!important}
+html.paint .cta:disabled,html.paint .cta[disabled]{filter:grayscale(.6) brightness(.8)}
+html.paint .ghost{background:rgba(40,20,8,.32)!important;border:1.5px solid rgba(255,227,168,.3)!important;color:#ffe3a8!important;border-radius:999px!important}
+html.paint .fchip{background:rgba(40,20,8,.4)!important;border:1.5px solid rgba(255,227,168,.22)!important;color:#fff4dc!important}
+html.paint .fchip.on{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;border-color:#ffd35a!important;color:#4a2a14!important}
+html.paint .lnk{color:#ffe27a!important}
+html.paint .back,html.paint .backclub{background:rgba(90,52,24,.9)!important;color:#fff4dc!important;border-radius:999px!important;box-shadow:0 3px 8px rgba(40,20,8,.35)!important}
+
+/* segmented tabs */
+html.paint :is(.seg,.ptabs,.clnav){background:rgba(40,20,8,.45)!important;border:0!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.35)!important}
+html.paint :is(.seg,.ptabs,.clnav) button{color:#f3d9ae!important}
+html.paint :is(.seg,.ptabs,.clnav) button.on{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important;box-shadow:0 2px 6px rgba(40,20,8,.35)}
+
+/* bottom bar: wooden dock */
+html.paint .nav{background:linear-gradient(180deg,#8a5530,#5e3519)!important;border:0!important;box-shadow:inset 0 0 0 2.5px #a8703f,inset 0 0 0 5px #5a3418,0 10px 24px rgba(20,8,2,.55)!important;border-radius:24px!important}
+html.paint .nav button{color:#f3d9ae!important}
+html.paint .nav button span{filter:none!important;opacity:1!important}
+html.paint .nav button.on{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important}
+html.paint .nav button img.pi{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(40,20,8,.4))}
+
+/* fields */
+html.paint :is(input,select,textarea):not([type=checkbox]):not([type=radio]):not([type=range]){background:rgba(40,20,8,.45)!important;border:1.5px solid rgba(255,227,168,.25)!important;color:#fff4dc!important;border-radius:12px}
+html.paint :is(input,textarea)::placeholder{color:#d9b98a!important}
+html.paint .search{background:rgba(40,20,8,.45)!important;border:1.5px solid rgba(255,227,168,.25)!important;color:#fff4dc!important}
+
+/* progress bars and avatars */
+html.paint .xp{background:rgba(40,20,8,.45)!important}
+html.paint .xp i{background:linear-gradient(90deg,#ffd35a,#ffe9a0)!important}
+html.paint .av{box-shadow:0 0 0 3px #5a3418,0 3px 6px rgba(40,20,8,.4)!important}
+html.paint .chip{background:rgba(40,20,8,.35)!important;border-color:rgba(255,227,168,.3)!important;color:#fff4dc}
+html.paint #toast{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important;border:0!important;font-weight:700}
+
+/* parent view: same park look instead of the near-black theme */
+html.paint body.pv{--pvbg:#3c1e0c!important;--pvs:#7a4826!important;--pvs2:#8a5530!important;--pvl:rgba(255,227,168,.26)!important;--pvt:#fff4dc!important;--pvm:#f3d9ae!important;--pva:#ffd35a!important;background:#3c1e0c!important;font-family:"Fredoka",system-ui,sans-serif!important}
+
+/* painted icons that stand in for emoji */
+html.paint img.pi{display:inline-block;width:1.5em;height:1.5em;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 2px rgba(40,20,8,.35))}
+
+/* fixes: let the painted park show through; top bar; parent-view pieces */
+html.paint body{background:transparent!important}
+html.paint .top,html.paint body.pv .top{background:linear-gradient(180deg,rgba(90,52,24,.96),rgba(70,38,16,.92))!important;border-bottom:3px solid #a8703f!important;box-shadow:0 4px 12px rgba(20,8,2,.4)!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+html.paint .brand,html.paint .team{font-family:"Fredoka",system-ui,sans-serif!important;font-style:normal!important;font-weight:700!important}
+html.paint .team{color:#f3d9ae!important}
+html.paint body.pv :is(.nav,nav.nav){background:linear-gradient(180deg,#8a5530,#5e3519)!important;border:0!important;box-shadow:inset 0 0 0 2.5px #a8703f,inset 0 0 0 5px #5a3418,0 10px 24px rgba(20,8,2,.55)!important}
+html.paint body.pv nav.nav button{color:#f3d9ae!important}
+html.paint body.pv nav.nav button.on{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important}
+html.paint body.pv :is(.ptabs,.seg.kids,.fr.pvseg){background:rgba(40,20,8,.45)!important;border:0!important}
+html.paint body.pv :is(.ptabs button,.seg.kids button,.fr.pvseg .fchip,.fr.pvtog .fchip){color:#f3d9ae!important;background:transparent!important;border-color:transparent!important}
+html.paint body.pv :is(.ptabs button.on,.seg.kids button.on,.fr.pvseg .fchip.on,.fr.pvtog .fchip.on){background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important}
+html.paint body.pv :is(.tiles.four>div,.tiles.four>button,.xtc,.hurt,.osbtn,.evd,.tgrp,.shq.pvlist button){background:var(--wood)!important;border:0!important;box-shadow:var(--rim)!important;color:#fff4dc!important}
+html.paint body.pv :is(input.search,select:not(.pvsel),.pvsel){background:rgba(40,20,8,.45)!important;border:1.5px solid rgba(255,227,168,.25)!important;color:#fff4dc!important}
+html.paint .lgp{background:radial-gradient(circle at 50% 40%,rgba(255,226,122,.25),transparent 70%),var(--wood)!important;box-shadow:inset 0 0 0 3px #ffd35a,inset 0 0 0 6px #5a3418,0 10px 24px rgba(20,8,2,.5)!important;border:0!important}
+html.paint .fgoals button,html.paint .fhero .rowb{background:rgba(40,20,8,.42)!important;border:1.5px solid rgba(255,227,168,.22)!important;color:#fff4dc!important}
+html.paint .fhero,html.paint .fhero *{color:#fff4dc}
+html.paint .fhero .arr{color:#ffe27a!important}
+html.paint :is(.gcard,.lvcard,.ducard,.fund,.bwxp,.coinbar,.cur,.tuttip){background:var(--wood)!important;border:0!important;box-shadow:var(--rim)!important;color:#fff4dc!important}
+html.paint .bwxp{border-radius:999px!important}
+html.paint .pvb{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important}
+html.paint .pvb button{background:#4a2a14!important;color:#fff4dc!important}
+html.paint .st.now{background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important}
+html.paint .lth{background:radial-gradient(circle at 50% 40%,#8a5530,#4a2a14)!important}
+html.paint .top .lg{cursor:pointer}
