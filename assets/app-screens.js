@@ -27,20 +27,17 @@
     var dd = DV()[hash(t + p.id) % DV().length], tq = hash(t + 'q') % TRIVIA.length, sh = (p.shouts || []).slice(-2).reverse();
     var hello = ['Let\'s get better today', 'Time to put in work', 'Every rep counts', 'Go get it'][hash(t) % 4];
 
-    var hero = '<section class="zhero"><img class="zchest" src="' + I + (open.length ? 'chest.png' : 'chest-open.png') + '" alt="">' +
-      '<div class="zhi"><small>' + esc(nice(t)) + '</small><h1>Hey, ' + esc(p.n) + '</h1><p>' + hello + '</p></div>' +
-      '<button class="zlvl" data-a="go:xp" aria-label="Level ' + (L.i + 1) + ', ' + esc(L.n) + '. Open XP">' + ring(L.pct, L.i + 1) +
-      '<span class="zlt"><b>' + esc(L.n) + '</b><span class="zbar"><i style="width:' + L.pct + '%"></i></span><small>' + (p.xp || 0).toLocaleString() + ' XP' + (L.hi ? ' · ' + (L.hi - p.xp) + ' to ' + esc(L.next) : '') + '</small></span>' +
-      '<span class="zchips"><span class="zchip"><img src="' + I + 'coin.png" alt="">' + bank.toLocaleString() + '<small>to spend</small></span><span class="zchip ' + (p.streak ? '' : 'cold') + '">🔥' + (p.streak || 0) + '<small>day' + (p.streak === 1 ? '' : 's') + '</small></span></span></button></section>';
-
-    var todo = '<div class="todo-box zt">' + board('Today\'s to-do', doneToday + ' of ' + (doneToday + open.length) + ' done',
-      open.length ? open.map(function (h) {
-        var i = p.hw.indexOf(h), x = DR[h.id]; if (!x) return '';
-        var late = h.due < t;
-        return '<div class="hw zhw" style="--c:' + CAT[x.c].c + '"><button class="hwm" data-a="drill:' + x.id + '">' + icon(x.c) + '<span class="dtx"><b>' + esc(x.n) + '</b><small>' + esc(h.reps || x.t + ' min') + ' · ' + (late ? '<em>overdue</em>' : 'due ' + nice(h.due)) + '</small>' + (h.note ? '<small class="note">“' + esc(h.note) + '”</small>' : '') + '</span></button>' +
-          (x.gk ? '<button class="done zdone" data-a="game:' + x.gk + '">Play</button>' : '<button class="done zdone" data-a="hw:' + i + '" aria-label="Done: ' + esc(x.n) + '">✓<small>Done</small></button>') + '</div>';
-      }).join('') : '<div class="zempty"><img src="' + I + 'trophy.png" alt=""><b>All done for today!</b><span>Play a game or pick a drill in the Bullpen for bonus XP.</span></div>') + '</div>';
-
+    var MODE = { watch: ['Watch', 'cat/film'], do: ['Watch + do it', 'cat/goal'], video: ['Watch, do it + send a video', 'cat/film'] };
+    var mOf = function (h) { return safe(function () { return bpvMode(h); }) || 'do'; };
+    var hero = '<section class="zhero zhw-hero todo-box zt"><div class="zhtop"><img class="zchest" src="' + I + (open.length ? 'chest.png' : 'chest-open.png') + '" alt="">' +
+      '<div class="zhi"><small>' + esc(nice(t)) + '</small><h1>Hey, ' + esc(p.n) + '</h1><p>' + (open.length ? 'Today\'s homework: ' + open.length + ' drill' + (open.length === 1 ? '' : 's') + (doneToday ? ' · ' + doneToday + ' done' : '') : doneToday ? 'Homework done for today. Nice work!' : hello) + '</p></div></div>' +
+      (open.length ? '<div class="zhlist">' + open.map(function (h) {
+        var x = DR[h.id]; if (!x) return '';
+        var late = h.due < t, m = mOf(h), vd = h.vid && h.vid.st === 'sent';
+        return '<div class="hw zhw" style="--c:' + CAT[x.c].c + '"><button class="hwm" data-a="drill:' + x.id + '">' + icon(x.c) + '<span class="dtx"><span class="zmode m-' + m + '">' + MODE[m][0] + '</span><b>' + esc(x.n) + '</b><small>' + esc(h.reps || x.t + ' min') + ' · ' + (late ? '<em>overdue</em>' : 'due ' + nice(h.due)) + '</small>' + (h.note ? '<small class="note">“' + esc(h.note) + '”</small>' : '') + '</span></button>' +
+          (x.gk ? '<button class="done zdone" data-a="game:' + x.gk + '">Play</button>' : '<button class="zview" data-a="drill:' + x.id + '" aria-label="View: ' + esc(x.n) + '">' + (vd ? '✓' : '▶') + '<small>View</small></button>') + '</div>';
+      }).join('') + '</div>' : '<div class="zempty"><img src="' + I + 'trophy.png" alt=""><b>' + (doneToday ? 'All done for today!' : 'No homework today') + '</b><span>Play a game or pick a drill in the Bullpen for bonus XP.</span></div>') + '</section>';
+    var todo = '';
     var shouts = sh.length ? '<section class="shouts zsh">' + sh.map(function (s) {
       return '<div class="zbub"><img src="' + I + 'team-logo.png" alt=""><div><small>' + (s.from ? esc(s.from) + ' says' : 'Coach says') + '</small><b>' + esc(s.t) + '</b></div></div>';
     }).join('') + '</section>' : '';
@@ -148,4 +145,59 @@
     } else body = tabBody(prev());
     return topbar() + '<main class="zmain zcv">' + hero + tabs + body + '</main>' + nav();
   };
+})();
+
+/* ================= homework drill: Watch / Do it / Send a video steps on the drill page ================= */
+window.zSteps = function () {
+  try {
+    if (!sheet || sheet[0] !== 'drill' || isCoach() || isParent()) return;
+    var p = me(), id = sheet[1], sh = document.querySelector('#sheet .sheet'); if (!p || !sh || sh.querySelector('.zsteps')) return;
+    var i = p.hw.findIndex(function (h) { return h.id === id && !h.done; }), h = i >= 0 ? p.hw[i] : null;
+    var m = h ? (bpvMode(h) || 'do') : 'do';
+    var steps = m === 'watch' ? [['Watch', 'the video']] : m === 'video' ? [['Watch', 'the video'], ['Do it', 'follow the steps'], ['Send', 'a video to Coach']] : [['Watch', 'the video'], ['Do it', 'follow the steps']];
+    var lead = !h ? 'Bonus drill: watch it, do it, then tap I did it.' : m === 'watch' ? 'Coach wants you to watch this one. Tap Watched when you\'re done.' : m === 'video' ? 'Coach wants a video: watch it, do the drill, then upload a clip of you doing it.' : 'Watch the video, then do the drill and tap I did it.';
+    sh.querySelector('.x') && sh.querySelector('.x').insertAdjacentHTML('afterend',
+      '<div class="zsteps"><small>' + (h ? 'Homework' + (h.due ? ' · due ' + nice(h.due) : '') : 'On your own') + '</small><b>' + lead + '</b><ol>' +
+      steps.map(function (s, k) { return '<li><i>' + (k + 1) + '</i><span><b>' + s[0] + '</b><small>' + s[1] + '</small></span></li>'; }).join('') + '</ol></div>');
+    sh.querySelectorAll('.kflow').forEach(function (k) { k.remove(); });
+  } catch (e) {}
+};
+
+/* ================= assigning: pick the exact day ================= */
+(function () {
+  if (typeof asg === 'undefined') return;
+  var dates = { asg: '', qa: '' };
+  function dayDiff(d) { return Math.round((new Date(d + 'T12:00:00') - new Date(today() + 'T12:00:00')) / 864e5); }
+  window.zDates = function () {
+    try {
+      [['adue', 'asg'], ['qdue', 'qa']].forEach(function (k) {
+        var b = document.querySelector('#app [data-a^="' + k[0] + ':"]'); if (!b) return;
+        var row = b.parentElement; if (row.parentElement.querySelector('.zdate')) return;
+        if (dates[k[1]]) row.querySelectorAll('.fchip').forEach(function (c) { c.classList.remove('on'); });
+        row.insertAdjacentHTML('afterend', '<label class="zdate ' + (dates[k[1]] ? 'on' : '') + '"><img src="../assets/img/scoreboard.png" alt=""><span><b>Pick the day</b><small>' + (dates[k[1]] ? 'Shows up on ' + nice(dates[k[1]]) + ', due that day' : 'It shows up on their Home that day') + '</small></span><input type="date" data-zd="' + k[1] + '" min="' + today() + '" value="' + dates[k[1]] + '"></label>');
+      });
+    } catch (e) {}
+  };
+  document.addEventListener('change', function (e) {
+    var i = e.target.closest('[data-zd]'); if (!i) return;
+    var w = i.dataset.zd, v = i.value; dates[w] = v;
+    if (v) { var n = Math.max(0, dayDiff(v)); if (w === 'asg') asg.due = n; else qa.due = n; }
+    render();
+  });
+  /* chips clear the picked day */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.dataset.a;
+    if (/^adue:/.test(a)) dates.asg = '';
+    if (/^qdue:/.test(a)) dates.qa = '';
+    if ((a === 'send' && dates.asg) || (a === 'qsend' && dates.qa)) {
+      var d = a === 'send' ? dates.asg : dates.qa, pre = {};
+      S.players.forEach(function (p) { pre[p.id] = p.hw.length; });
+      setTimeout(function () {
+        S.players.forEach(function (p) { for (var k = pre[p.id]; k < p.hw.length; k++) { if (d > today()) p.hw[k].on = d; p.hw[k].due = d; } });
+        if (a === 'send') dates.asg = ''; else dates.qa = '';
+        save(); render();
+      }, 0);
+    }
+  }, true);
 })();

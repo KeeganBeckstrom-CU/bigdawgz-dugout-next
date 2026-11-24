@@ -28,6 +28,19 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var lvl = function (xp) { try { return level(xp || 0); } catch (e) { return { n: '' }; } };
 
+  /* ---------- test copy: give the sample players XP to spend and a starting card collection ---------- */
+  try {
+    if (!window.NET && S && S.players && !S.zSeed2 && typeof openPack === 'function') {
+      S.players.forEach(function (p, i) {
+        if (p.tmp) return; econ(p);
+        p.bank = Math.max(p.bank || 0, Math.round((p.xp || 0) * 3) + 800);
+        p.cards = p.cards || [];
+        if (p.cards.length < 8) for (var k = 0; k < 2 + (i % 3); k++) p.cards = p.cards.concat(openPack(p, PACKS[k === 2 ? 1 : 0]));
+      });
+      S.zSeed2 = 1; save();
+    }
+  } catch (e) {}
+
   /* ---------- painted sign-in ---------- */
   var pickMode = '';
   pickHTML = function () {
@@ -64,7 +77,10 @@
     if (ph && !ph.querySelector('.phi')) { var k = TI[view] || 'team-logo'; ph.insertAdjacentHTML('afterbegin', '<img class="phi" src="' + I + k + '.png" alt="">'); }
     var nav = app.querySelector('.nav') || document.querySelector('nav.nav');
     if (nav && !nav.querySelector('.navpark')) nav.insertAdjacentHTML('afterbegin', '<a class="navpark" href="../"><span><img class="pi" src="' + I + 'park-btn.png" alt="" onerror="this.outerHTML=\'⛳\'"></span><small>Park</small></a>');
-    if (app.querySelector('.zhero')) app.querySelectorAll('.xphero').forEach(function (x) { x.remove(); });
+    if (window.zSteps) window.zSteps();
+    if (window.zDates) window.zDates();
+    var zh = app.querySelector('.zhero');
+    if (zh) { app.querySelectorAll('.xphero').forEach(function (x) { x.remove(); }); var qs = app.querySelector('main > .qsport'); if (qs && qs.nextElementSibling === zh) zh.after(qs); }
     document.body.classList.toggle('pk-on', !S.who || view === 'pick');
   }
   var _r = render;

@@ -153,3 +153,32 @@ html.paint .zpl{display:flex!important;align-items:center;gap:10px;width:100%;ma
 .zside{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700;font-size:15px}
 .zside .cold{opacity:.55}
 .zside .rest{font-size:11px;color:#ff9a7a;font-weight:700}
+/* homework hero */
+.zhw-hero{display:block!important}
+html.paint .zhw-hero{padding:14px!important}
+.zhtop{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.zhlist{display:flex;flex-direction:column}
+html.paint .zhw-hero .zhw{background:rgba(40,20,8,.35)!important;box-shadow:inset 4px 0 0 var(--c),inset 0 0 0 1.5px rgba(255,227,168,.18)!important}
+.zmode{align-self:flex-start;margin-bottom:2px;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;background:rgba(255,211,90,.2);color:#ffe27a}
+.zmode.m-watch{background:rgba(127,208,255,.2);color:#bfe6ff}
+.zmode.m-video{background:rgba(255,120,120,.2);color:#ffc2b5}
+html.paint .zview{flex:none;width:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px!important;background:linear-gradient(180deg,#ffd35a,#e8a21c)!important;color:#4a2a14!important;font-weight:700;font-size:22px;line-height:1;box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 3px 0 #9a5a10!important;border:0!important}
+.zview small{font-size:12.5px;font-weight:700;margin-top:3px}
+.zview:active{transform:translateY(2px)}
+/* drill steps */
+.zsteps{margin:4px 48px 14px 0;padding:12px 14px;border-radius:16px;background:rgba(40,20,8,.4);box-shadow:inset 0 0 0 2px #ffd35a}
+.zsteps>small{display:block;font-weight:700;font-size:11.5px;color:#ffe27a;text-transform:uppercase;letter-spacing:.05em}
+.zsteps>b{display:block;margin:2px 0 8px;font-weight:600;font-size:15px;line-height:1.35}
+.zsteps ol{display:flex;gap:6px;margin:0;padding:0;list-style:none}
+.zsteps li{flex:1;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:rgba(255,211,90,.12)}
+.zsteps li i{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#ffd35a,#e8a21c);color:#4a2a14;font-style:normal;font-weight:700;font-size:13px}
+.zsteps li span{display:flex;flex-direction:column;line-height:1.1}
+.zsteps li b{font-weight:700;font-size:13.5px}
+.zsteps li small{font-weight:500;font-size:10.5px;color:#f3d9ae}
+.zdate{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(40,20,8,.4);box-shadow:inset 0 0 0 1.5px rgba(255,227,168,.25);cursor:pointer}
+.zdate.on{box-shadow:inset 0 0 0 2.5px #ffd35a}
+.zdate img{width:40px;height:40px;object-fit:contain;flex:none}
+.zdate span{flex:1;display:flex;flex-direction:column;line-height:1.2}
+.zdate b{font-weight:700;font-size:15px;color:#fff4dc}
+.zdate small{font-weight:500;font-size:12px;color:#f3d9ae}
+html.paint .zdate input{flex:none;width:150px;padding:8px!important;font:600 14px Fredoka,sans-serif}
