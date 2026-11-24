@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3c1e0c">
+<title>Leaderboards · BigDawgz Dugout</title>
+<link rel="icon" href="../assets/img/team-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/arcade/arcade.css">
+<link rel="stylesheet" href="../assets/clubhouse.css">
+</head>
+<body>
+<img class="bgfill" src="../assets/img/park.jpg" alt="">
+<div class="app">
+  <header class="ghead">
+    <a class="gx" href="./" aria-label="Back to the Clubhouse"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <span><b>Clubhouse</b></span>
+  </header>
+  <div class="hubtitle"><img src="../assets/img/trophy.png" alt=""><div><h1>Leaderboards</h1><p>Your best score in every game</p></div></div>
+  <div id="list"></div>
+  <p class="note">Team leaderboards turn on when everyone signs in with team accounts.</p>
+</div>
+<script src="../assets/profile.js"></script>
+<script src="../assets/arcade/data.js"></script>
+<script>
+(function () {
+  var A = window.ARC, p = Profile.data;
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var names = { derby: ['Home Run Derby', '../play/fx.html?g=derby'], bases: ['Run the Bases', '../play/fx.html?g=bases'], glove: ['Gold Glove', '../play/fx.html?g=glove'], ace: ['Ace', '../play/fx.html?g=ace'], corn: ['Can of Corn', '../play/fx.html?g=corn'] };
+  A.GAMES.forEach(function (g) { names[g[0]] = [g[2], '../play/game.html?g=' + g[0]]; });
+  var rows = Object.keys(names).map(function (k) { return [k, names[k][0], names[k][1], p.hs[k]]; });
+  rows.sort(function (a, b) { return (b[3] ? b[3].s : -1) - (a[3] ? a[3].s : -1); });
+  document.getElementById('list').innerHTML = rows.map(function (r) {
+    var hs = r[3], lv = hs && hs.lv != null ? ' · ' + (A.LVN[hs.lv] || '') : '';
+    return '<a class="lbrow" href="' + r[2] + '"><img src="../assets/img/games/' + r[0] + '.png" alt=""><span><b>' + esc(r[1]) + '</b><small>' + (hs ? 'Best' + lv : 'Not played yet') + '</small></span><em>' + (hs ? hs.s.toLocaleString() : '–') + '</em></a>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

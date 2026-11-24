@@ -7,7 +7,8 @@ Basepaths, the new BigDawgz Dugout app, built from scratch.
 ## What's here
 
 - `index.html`: the home screen, the painted Toon Park. Tap a sign, the chest or a bottom-bar item and the camera dives in, then that section's page opens.
-- `play/`: the Arcade. All 18 games from the old app with the same question banks, levels (Easy, Medium, Hard, Expert), clocks, strikes, XP and high scores, redrawn in the painted style.
+- `clubhouse/`: the Team Clubhouse (park sign). Tiles for Arcade, Cards, Trades, Challenges, Leaderboards, Head-to-Head and Film Room. `leaders.html` shows your best score per game; `soon.html?t=` holds the sections that need team accounts.
+- `play/`: the Arcade (inside the Clubhouse, and the PLAY button). All 18 games from the old app with the same question banks, levels (Easy, Medium, Hard, Expert), clocks, strikes, XP and high scores, redrawn in the painted style.
   - `play/index.html` is the game list, `play/game.html?g=trivia` (etc.) plays one game.
   - `assets/arcade/data.js` holds every question bank and setting, copied from `bigdawgz-dugout`.
   - `assets/arcade/engine.js` runs the games, `assets/arcade/arcade.css` is the look.

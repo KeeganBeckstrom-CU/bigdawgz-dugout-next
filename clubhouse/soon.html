@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3c1e0c">
+<title>Clubhouse · BigDawgz Dugout</title>
+<link rel="icon" href="../assets/img/team-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/wip.css">
+</head>
+<body>
+<!-- Clubhouse sections that need team accounts: work in progress. -->
+<main class="app">
+  <img class="fill" src="../assets/img/park.jpg" alt="">
+  <a class="back" href="./"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Clubhouse</a>
+  <section class="panel">
+    <img class="hero" id="hero" src="../assets/img/trophy.png" alt="">
+    <div class="tag"><img src="../assets/img/plank.png" alt=""><span>Work in progress</span></div>
+    <h1 id="t">Clubhouse</h1>
+    <p id="d"></p>
+    <ul id="l"></ul>
+    <a class="home" href="./"><img src="../assets/img/button.png" alt=""><span>Back to the Clubhouse</span></a>
+  </section>
+</main>
+<script>
+(function () {
+  var P = {
+    trades: ['chest-open', 'Trades', 'Swap cards with teammates. This needs team accounts, so it turns on when everyone signs in.', ['Pick up to 3 of your cards and up to 3 of theirs', 'Ask for nothing to send a gift', 'Add a short note to your offer', 'Cards move the next time each of you opens the app']],
+    challenges: ['bats', 'Challenges', 'Send your score to a teammate and dare them to beat it. This needs team accounts.', ['Pick a game and a level', 'Send it to one teammate or a few', 'They get one try to beat you', 'Coaches can see every challenge']],
+    duel: ['glove', 'Head-to-Head', 'Play the same game against a teammate at the same time. This needs team accounts.', ['Same questions for both players', 'See who answers first', 'Winner gets bonus XP']],
+    film: ['scoreboard', 'Film Room', 'Your swings and pitches on video, with notes from your coach.', ['Watch clips your coach sends you', 'Side-by-side with a pro swing', 'Coach notes on each clip']]
+  };
+  var k = (location.search.match(/t=(\w+)/) || [])[1], v = P[k] || P.trades;
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  document.getElementById('hero').src = '../assets/img/' + v[0] + '.png';
+  document.getElementById('t').textContent = v[1];
+  document.getElementById('d').textContent = v[2];
+  document.getElementById('l').innerHTML = v[3].map(function (x) { return '<li><img src="../assets/img/ball.png" alt="">' + esc(x) + '</li>'; }).join('');
+  document.title = v[1] + ' · BigDawgz Dugout';
+})();
+</script>
+</body>
+</html>
