@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3c1e0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>BigDawgz Dugout</title>
+<link rel="icon" href="assets/img/team-logo.png">
+<link rel="apple-touch-icon" href="assets/img/team-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/park.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- the painted park -->
+  <div class="cam" id="cam">
+    <img class="fill" src="assets/img/park.jpg" alt="">
+    <div class="world" id="world">
+      <img class="park" src="assets/img/park.jpg" alt="A painted ballpark at golden hour">
+      <i class="cloud" style="top:3%;animation-duration:58s;animation-delay:-14s"></i>
+      <i class="cloud" style="top:13%;animation-duration:74s;animation-delay:-46s;opacity:.5"></i>
+      <i class="glint" style="left:26.5%;top:29.8%"></i>
+      <i class="glint" style="left:86%;top:33%;animation-delay:-1.6s"></i>
+      <img class="fieldlogo" src="assets/img/team-logo.png" alt="" style="left:50%;top:47%">
+
+      <a class="sign" href="bullpen/" data-go style="left:20%;top:39%">
+        <span class="sway">
+          <span class="board"><img src="assets/img/plank.png" alt=""><img class="ico" src="assets/img/bats.png" alt=""><span><b>Bullpen</b><small>Drills</small></span></span>
+          <span class="post"></span>
+        </span>
+        <span class="dot"></span>
+      </a>
+
+      <a class="sign" href="scoreboard/" data-go style="left:50%;top:26.5%">
+        <span class="sway">
+          <span class="board"><img src="assets/img/plank.png" alt=""><img class="ico" src="assets/img/scoreboard.png" alt=""><span><b>Scoreboard</b><small>Team</small></span></span>
+          <span class="post"></span>
+        </span>
+        <span class="dot"></span>
+      </a>
+
+      <a class="daily" href="daily/" data-go style="left:50%;top:73.4%" aria-label="Daily task">
+        <span class="halo"></span>
+        <img class="chest" src="assets/img/chest.png" alt="">
+        <span class="board"><img src="assets/img/plank.png" alt=""><span><b>Daily Task</b><small id="timer">--:--:--</small></span></span>
+      </a>
+    </div>
+  </div>
+
+  <!-- top bar -->
+  <header class="hud">
+    <img class="crest" src="assets/img/team-logo.png" alt="BigDawgz logo">
+    <div class="who">
+      <b id="teamName">BigDawgz 12U</b>
+      <div class="lvl"><span class="track" role="img" aria-label="Level 12, 64% to level 13"><i style="width:64%"></i></span><small>Lv 12</small></div>
+    </div>
+    <div class="coins" aria-label="1,240 XP"><img src="assets/img/coin.png" alt=""><b>1,240</b></div>
+    <button class="mute" id="mute" type="button" aria-label="Mute sound">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff4dc" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="on" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/><path class="off" d="M17 9l5 6M22 9l-5 6"/></svg>
+    </button>
+  </header>
+
+  <!-- bottom bar -->
+  <nav class="dock" aria-label="Sections">
+    <a href="locker/" data-go><img src="assets/img/glove.png" alt=""><span>Locker</span></a>
+    <a href="cards/" data-go><img src="assets/img/binder.png" alt=""><span>Cards</span></a>
+    <a class="play" href="play/" data-go aria-label="Play"><img src="assets/img/button.png" alt=""><span>PLAY</span></a>
+    <a href="packs/" data-go><img src="assets/img/pack.png" alt=""><span>Packs</span></a>
+    <a href="museum/" data-go><img src="assets/img/trophy.png" alt=""><span>Museum</span></a>
+  </nav>
+</div>
+<script src="assets/sound.js"></script>
+<script src="assets/park.js"></script>
+</body>
+</html>
