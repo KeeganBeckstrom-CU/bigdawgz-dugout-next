@@ -19,6 +19,7 @@
     ['Open a card pack', 'Rookie Rush, All-Star Surge and more', 'pack', A('go=cards'), 'packs rip open buy', 'pc'],
     ['Card guide', 'Rarity, parallels, autographs', 'binder', A('go=cguide'), 'guide rarity parallels autos', 'pc'],
     ['Museum', 'The Road to Cooperstown: 100 moments', 'museum', BASE + 'museum/', 'museum moments history hall of fame cooperstown', 'a'],
+    ['History lessons', '3 lessons a week + a quiz, until Cooperstown', 'museum', BASE + 'museum/#lessons', 'history lesson quiz cooperstown calendar schedule road', 'a'],
     ['Leaderboards', 'Top scores on the team', 'trophy', A('go=boards'), 'rank leaders top scores', 'a'],
     ['My high scores', 'Your best in every game', 'cat/star', A('a=hsp:me'), 'best scores records', 'p'],
     ['Trades', 'Swap cards with teammates', 'chest-open', A('go=trade'), 'trade swap cards', 'p'],

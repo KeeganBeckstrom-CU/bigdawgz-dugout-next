@@ -29,9 +29,19 @@
 
     var MODE = { watch: ['Watch', 'cat/film'], do: ['Watch + do it', 'cat/goal'], video: ['Watch, do it + send a video', 'cat/film'] };
     var mOf = function (h) { return safe(function () { return bpvMode(h); }) || 'do'; };
+    /* Road to Cooperstown history lessons (12U teams only) */
+    try { localStorage.setItem('bp-hist-on', (typeof BP === 'undefined' || !BP.org || /12/.test(BP.org.age || '')) ? '1' : '0'); } catch (e) {}
+    var hist = safe(function () { return window.BPH ? BPH.todo(p.id) : []; }, []) || [];
+    var histRows = hist.slice(0, 3).map(function (x) {
+      var href = '../museum/#' + (x.kind === 'quiz' ? 'quiz=' + x.w.n : 'lesson=' + x.L.id + '@' + x.L.date + (x.L.review ? 'r' : ''));
+      var title = x.kind === 'quiz' ? 'Week ' + x.w.n + ' history quiz' : x.L.t;
+      var sub = x.kind === 'quiz' ? '3 questions · earn a time capsule' : x.L.yr + ' · ' + (x.late ? '<em>catch up</em>' : 'today');
+      return '<div class="hw zhw zhist" style="--c:#ffd35a"><a class="hwm" href="' + href + '"><img class="ci" src="' + I + 'museum.png" alt=""><span class="dtx"><span class="zmode m-hist">' + (x.kind === 'quiz' ? 'History quiz' : 'History lesson') + '</span><b>' + esc(title) + '</b><small>' + sub + '</small></span></a>' +
+        '<a class="zview" href="' + href + '" aria-label="' + (x.kind === 'quiz' ? 'Take the quiz' : 'Read: ' + esc(title)) + '">▶<small>' + (x.kind === 'quiz' ? 'Quiz' : 'Read') + '</small></a></div>';
+    }).join('');
     var hero = '<section class="zhero zhw-hero todo-box zt"><div class="zhtop"><img class="zchest" src="' + I + (open.length ? 'chest.png' : 'chest-open.png') + '" alt="">' +
       '<div class="zhi"><small>' + esc(nice(t)) + '</small><h1>Hey, ' + esc(p.n) + '</h1><p>' + (open.length ? 'Today\'s homework: ' + open.length + ' drill' + (open.length === 1 ? '' : 's') + (doneToday ? ' · ' + doneToday + ' done' : '') : doneToday ? 'Homework done for today. Nice work!' : hello) + '</p></div></div>' +
-      (open.length ? '<div class="zhlist">' + open.map(function (h) {
+      (open.length || histRows ? '<div class="zhlist">' + histRows + open.map(function (h) {
         var x = DR[h.id]; if (!x) return '';
         var late = h.due < t, m = mOf(h), vd = h.vid && h.vid.st === 'sent';
         return '<div class="hw zhw" style="--c:' + CAT[x.c].c + '"><button class="hwm" data-a="drill:' + x.id + '">' + icon(x.c) + '<span class="dtx"><span class="zmode m-' + m + '">' + MODE[m][0] + '</span><b>' + esc(x.n) + '</b><small>' + esc(h.reps || x.t + ' min') + ' · ' + (late ? '<em>overdue</em>' : 'due ' + nice(h.due)) + '</small>' + (h.note ? '<small class="note">“' + esc(h.note) + '”</small>' : '') + '</span></button>' +

@@ -18,7 +18,7 @@
 
   /* the app's own bottom bar */
   var items = coach
-    ? [['Park', '../', 'park'], ["Coach's View", A('go=team'), 'coach'], ['Clubhouse', A('go=club'), 'trophy.png'], ['Museum', '', 'museum.png'], ['More', A('go=more'), 'more']]
+    ? [['Park', '../', 'park'], ['Coach', A('go=team'), 'coach'], ['Clubhouse', A('go=club'), 'trophy.png'], ['Museum', '', 'museum.png'], ['More', A('go=more'), 'more']]
     : parent
       ? [['Park', '../', 'park'], ['Family', A('go=fam'), 'home'], ['Clubhouse', A('go=club'), 'trophy.png'], ['Museum', '', 'museum.png'], ['Account', A('go=acct'), 'more']]
       : [['Park', '../', 'park'], ['Home', A('go=home'), 'home'], ['Clubhouse', A('go=club'), 'trophy.png'], ['Museum', '', 'museum.png'], ['My Card', A('go=me'), 'cat/star.png']];
@@ -37,11 +37,11 @@
   function toTop() { var s = document.querySelector('.scr.on'); if (s) s.scrollTop = 0; }
 
   /* ---------- Back: closes what's open, then steps out one level, then goes Home ---------- */
-  var NAMES = { mus: 'Hall of Moments', caps: 'Time Capsules', col: 'Your Collection' };
+  var NAMES = { les: 'Road to Cooperstown', mus: 'Hall of Moments', caps: 'Time Capsules', col: 'Your Collection' };
   function inner() {
     var st = document.querySelector('.story:not(.out)'); if (st) return function () { var x = st.querySelector('.sb-x'); x && x.click(); };
     var md = document.getElementById('modal'); if (md.classList.contains('on')) return closeModal;
-    if (tab !== 'mus') return function () { go('mus'); toTop(); };
+    if (tab !== 'mus' && tab !== 'les') return function () { go('mus'); toTop(); };
     if (wingOpen >= 0) return function () { wingOpen = -1; renderMus(); toTop(); };
     return null;
   }
@@ -57,6 +57,19 @@
     if (st && st.contains(document.activeElement)) return; /* the story handles its own Escape */
     var f = inner(); if (f) { e.preventDefault(); f(); }
   });
+  /* stories: Space (or the right arrow) goes to the next page, left arrow goes back */
+  document.addEventListener('keydown', function (e) {
+    var st = document.querySelector('.story:not(.out)'); if (!st) return;
+    if (st.contains(document.activeElement) && /^(ArrowRight|ArrowLeft|Escape)$/.test(e.key)) return; /* the story already handles these */
+    var tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowRight') {
+      if (tag === 'BUTTON' && st.contains(document.activeElement) && !document.activeElement.classList.contains('sb-next')) return;
+      var nx = st.querySelector('.sb-next'); if (nx && nx.offsetParent !== null) { e.preventDefault(); nx.click(); }
+    } else if (e.key === 'ArrowLeft') { var pv = st.querySelector('.sb-prev'); if (pv) { e.preventDefault(); pv.click(); } }
+    else if (e.key === 'Escape') { var x = st.querySelector('.sb-x'); if (x) { e.preventDefault(); x.click(); } }
+  });
+  if (!coach) { try { PREV = false; } catch (e) {} }
+
   /* phone back gesture / browser back steps out one level too */
   try {
     history.replaceState({ zm: 0 }, '');

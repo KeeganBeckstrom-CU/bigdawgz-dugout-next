@@ -1224,6 +1224,9 @@ go("mus");
 ;(()=>{const b=document.getElementById("prevBtn");const paint=()=>{b.style.background=PREV?"linear-gradient(135deg,#ffd25a,#ff9f43)":"";b.style.color=PREV?"#1a1205":""};paint();b.onclick=()=>{PREV=!PREV;try{localStorage.setItem("bp-preview",PREV?"1":"0")}catch(e){}paint();toast(PREV?"Preview on: every Moment revealed":"Preview off: back to your real collection");renderAll()}})();
 </script>
 <script src="museum-app.js"></script>
+<script src="../assets/moments.js"></script>
+<script src="../assets/history-plan.js"></script>
+<script src="museum-history.js"></script>
 <script src="../assets/search.js"></script>
 </body>
 </html>
