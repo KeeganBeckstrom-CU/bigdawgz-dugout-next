@@ -1,0 +1,68 @@
+/* Museum in the Basepaths painted-park style: wood panels, gold buttons, cream text,
+   the blurred park behind everything, the app's top bar and bottom bar. */
+:root{--bg:transparent;--panel:#7a4826;--panel2:#8a5530;--line:rgba(255,227,168,.28);--ink:#fff4dc;--mut:#f3d9ae;--gold:#ffd35a;
+  --wood:linear-gradient(180deg,#8a5530,#6b3f1e);--rim:inset 0 0 0 2px #a8703f,inset 0 0 0 4px #5a3418,0 5px 12px rgba(40,20,8,.32)}
+html,body{background:#3c1e0c!important;font-family:Fredoka,system-ui,sans-serif!important;color:#fff4dc}
+body::before{content:"";position:fixed;inset:-40px;z-index:0;background:url(../assets/img/park.jpg) center/cover no-repeat;filter:blur(20px) saturate(1.1) brightness(.55);pointer-events:none}
+button,input{font-family:Fredoka,system-ui,sans-serif}
+.shell{z-index:1;width:min(100vw,560px)!important;height:100dvh!important;border-radius:0!important;box-shadow:none!important;background:transparent!important}
+main{background:transparent}
+
+/* ---------- top bar (same as the app's) ---------- */
+.hd{background:transparent!important;border:0!important;padding:calc(10px + env(safe-area-inset-top)) 12px 6px!important;gap:8px!important}
+.zbk,.hd .ibtn,.hd .chip{flex:none;height:44px;min-width:44px;border-radius:22px!important;background:#5a3418!important;border:0!important;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 3px 8px rgba(40,20,8,.35)!important;color:#fff4dc;display:grid;place-items:center;font-size:18px}
+.zbk{width:44px;padding:0}
+.hd .chip{display:flex!important;padding:0 14px!important;font-size:16px;font-weight:700}
+.ztt{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.ztt img{width:40px;height:40px;flex:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.ztt b{display:block;font-size:21px;line-height:1.05;font-weight:700;color:#ffe27a;text-shadow:0 2px 0 #4a2a14}
+.ztt small{display:block;font-size:13px;color:#f3d9ae;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zcoach{display:none!important}.zis-coach .zcoach{display:grid!important}
+.hd .ibtn[aria-pressed="false"]{opacity:.55}
+
+/* ---------- museum sections: wood pill tabs under the top bar ---------- */
+#nav{order:0;position:static!important;display:flex!important;gap:6px;padding:4px 12px 10px!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#nav button{flex:1;flex-direction:row!important;justify-content:center;gap:6px!important;min-height:44px;border-radius:22px;background:var(--wood);box-shadow:var(--rim);
+  color:#fff4dc!important;font-size:14px!important;font-weight:700!important;padding:0 8px!important}
+#nav button svg{width:18px!important;height:18px!important}
+#nav button.on{background:linear-gradient(180deg,#ffe27a,#f0b02e)!important;color:#3c1e0c!important;box-shadow:inset 0 -3px 0 #c47f12,0 3px 8px rgba(40,20,8,.35)!important}
+#nav button.on::before{display:none!important}
+#nav .badge{position:static!important;margin-left:2px}
+
+/* ---------- the app's bottom bar ---------- */
+.znav{flex:none;display:flex;margin:6px 10px calc(8px + env(safe-area-inset-bottom));padding:6px;border-radius:26px;background:var(--wood);
+  box-shadow:inset 0 0 0 2.5px #a8703f,inset 0 0 0 5px #5a3418,0 6px 16px rgba(30,14,4,.5)}
+.znav a{flex:1;min-width:0;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:20px;
+  color:#fff4dc;text-decoration:none;font-weight:700;font-size:12.5px;text-shadow:0 1px 0 #4a2a14}
+.znav a img,.znav .ze{width:32px;height:32px;object-fit:contain;font-size:26px;line-height:32px;text-align:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.znav a small{font-size:12.5px;white-space:nowrap}
+.znav a.on{background:linear-gradient(180deg,#ffe27a,#f0b02e);color:#3c1e0c;text-shadow:none;box-shadow:inset 0 -3px 0 #c47f12}
+
+/* ---------- panels, buttons and text in wood + gold ---------- */
+.card,.th,.vault,.odds div,.quiz,.lit,.notes,.otd,.colh,.meter,.capsule-box,.exh,.gw,.otd2,.h-meter div,.toast{
+  background:var(--wood)!important;border:0!important;box-shadow:var(--rim)!important;color:#fff4dc}
+.colh{background:radial-gradient(120% 90% at 0 0,color-mix(in srgb,var(--lc,#ffd35a) 30%,transparent),transparent 60%),var(--wood)!important}
+.btn{min-height:48px;border-radius:24px!important;background:linear-gradient(180deg,#ffe27a,#f0b02e)!important;color:#3c1e0c!important;font-weight:700!important;
+  box-shadow:inset 0 -4px 0 #c47f12,0 4px 10px rgba(40,20,8,.4)!important;border:0!important}
+.btn.ghost,.minibtn,.quiz button.o,.mclose,.back,.g-bar .back,.sb-x{background:#5a3418!important;color:#fff4dc!important;border:0!important;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 3px 8px rgba(40,20,8,.35)!important}
+.mclose,.sb-x{min-width:44px;min-height:44px}
+.back,.g-bar .back{min-height:40px;padding:0 14px!important;border-radius:20px!important;font-weight:700}
+.modal{background:rgba(30,14,4,.82)!important;backdrop-filter:blur(4px)}
+.tag{background:#5a3418!important;color:#ffe27a!important}
+.prog .bar,.meter i{background:#3c1e0c!important}
+.mut,small,.h-sub,.g-head p{color:#f3d9ae}
+.tile{box-shadow:var(--rim)!important;border-color:#a8703f!important}
+.chip .cap{box-shadow:0 0 6px #ffd35a!important}
+.badge{background:#e0604a!important;color:#fff!important}
+
+/* ---------- accessibility ---------- */
+:focus{outline:none}
+:focus-visible{outline:3px solid #7fd0ff!important;outline-offset:3px!important;border-radius:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+.znav a.on small{color:#3c1e0c!important}
+#nav button{white-space:nowrap;font-size:13.5px!important;gap:5px!important}
+#nav button svg{width:16px!important;height:16px!important;flex:none}
+.g-bar .back,.wing .back{display:inline-flex!important;align-items:center;gap:4px;white-space:nowrap;height:40px;font-size:15px!important;width:auto!important}
