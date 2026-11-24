@@ -62,3 +62,28 @@
   /* Coming back with the browser's back button: undo the dive */
   window.addEventListener('pageshow', function () { app.classList.remove('diving'); });
 })();
+
+/* Who's signed in (from the team app) decides where each sign goes */
+(function () {
+  var who = Profile.who, T = Profile.team, coach = who === 'coach', parent = who === 'parent', player = !!who && !coach && !parent;
+  var A = 'app/#', R = function (to) { return who ? A + 'go=' + to : A + 'signin'; };
+  function set(sel, href) { var e = document.querySelector(sel); if (e) e.setAttribute('href', href); }
+  set('a.sign[href="app/"]', coach ? R('team') : R('sched'));
+  set('a.daily', coach ? R('team') : parent ? R('fam') : R('home'));
+  set('.dock a[href="locker/"]', parent ? R('fam') : R('locker'));
+  set('.dock a[href="cards/"]', R('cards'));
+  set('.dock a[href="packs/"]', R('cards'));
+  set('.dock a[href="museum/"]', R('cguide'));
+  set('a.more', coach ? R('more') : parent ? R('acct') : R('me'));
+  var sb = document.querySelector('a.sign[href^="app/"] .board b'), ss = document.querySelector('a.sign[href^="app/"] .board small');
+  if (coach && sb) { sb.textContent = "Coach's View"; ss.textContent = 'Team'; }
+  else if (sb) { sb.textContent = 'Scoreboard'; ss.textContent = 'Schedule'; }
+  var nm = document.getElementById('teamName');
+  if (nm) nm.textContent = player && Profile.data.n ? Profile.data.n : (T && T.team) || 'BigDawgz 12U';
+  var crest = document.querySelector('.crest');
+  if (crest) {
+    var b = document.createElement('a'); b.href = 'app/#signin'; b.className = 'crestb'; b.setAttribute('aria-label', who ? 'Switch who is signed in' : 'Sign in');
+    crest.parentNode.insertBefore(b, crest); b.appendChild(crest);
+    if (!who) { var s = document.createElement('a'); s.href = 'app/#signin'; s.className = 'signin'; s.textContent = 'Sign in'; document.querySelector('.hud').appendChild(s); }
+  }
+})();

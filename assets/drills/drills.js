@@ -204,12 +204,13 @@
       '<h4>Coach says</h4><div class="cues">' + x.cues.map(function (q) { return '<span>' + esc(q) + '</span>'; }).join('') + '</div>' +
       (x.game ? '<div class="mg"><small>Make it a game</small>' + esc(x.game) + '</div>' : '') +
       (x.c === 'arm' || x.c === 'pitch' ? '<p class="safe">Growing arms: easy effort, regular baseball or a soft ball. No weighted balls.</p>' : '') +
-      '<button class="cta" data-a="did:' + id + '"><img src="' + IMG + 'button.png" alt=""><span>I did it! +' + 10 * x.lv + ' XP</span></button>' +
-      '<div class="srow2"><span>' + (n ? 'You\'ve done this ' + n + ' time' + (n > 1 ? 's' : '') : 'First time? Go slow.') + '</span><button class="ghost sm" data-a="fav:' + id + '">' + (p.fav.indexOf(id) >= 0 ? '★ Saved' : '☆ Save') + '</button></div></div>';
+      (P.who === 'coach' ? '<a class="cta" href="../app/#coach&a=asgdrill:' + id + '"><img src="' + IMG + 'button.png" alt=""><span>Assign this drill</span></a>' :
+       P.who === 'parent' ? '' : '<button class="cta" data-a="did:' + id + '"><img src="' + IMG + 'button.png" alt=""><span>I did it! +' + 10 * x.lv + ' XP</span></button>') +
+      (P.who === 'coach' || P.who === 'parent' ? '' : '<div class="srow2"><span>' + (n ? 'You\'ve done this ' + n + ' time' + (n > 1 ? 's' : '') : 'First time? Go slow.') + '</span><button class="ghost sm" data-a="fav:' + id + '">' + (p.fav.indexOf(id) >= 0 ? '★ Saved' : '☆ Save') + '</button></div>') + '</div>';
   }
   function didDrill(id) {
     var x = DR[id], before = p.done[id] || 0;
-    p.done[id] = before + 1; p.log.unshift({ id: id, d: P.today() }); p.log = p.log.slice(0, 30);
+    p.done[id] = before + 1; p.cats = p.cats || {}; p.cats[x.c] = (p.cats[x.c] || 0) + 1; p.log.unshift({ id: id, d: P.today() }); p.log = p.log.slice(0, 30);
     var up = P.award(10 * x.lv);
     S.tone(784, .08, 'triangle', .07); setTimeout(function () { S.tone(1046, .12, 'triangle', .07); }, 90);
     toast(up ? 'Level up! You\'re ' + up + '.' : 'Nice work! +' + 10 * x.lv + ' XP');
