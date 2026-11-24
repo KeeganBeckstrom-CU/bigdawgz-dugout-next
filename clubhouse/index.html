@@ -9,47 +9,53 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/arcade/arcade.css">
-<link rel="stylesheet" href="../assets/clubhouse.css">
+<link rel="preload" as="image" href="../assets/img/clubhouse-room.webp">
+<link rel="stylesheet" href="../assets/clubroom.css">
 </head>
 <body>
-<img class="bgfill" src="../assets/img/park.jpg" alt="">
-<div class="app">
-  <header class="ghead">
-    <a class="gx" href="../" aria-label="Back to the park"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-    <span><b>Park</b></span>
-    <span class="coins" aria-label="Your XP"><img src="../assets/img/coin.png" alt=""><b id="xp">0</b></span>
+<div class="cr">
+  <header class="crtop ghead">
+    <a class="crb" href="../" aria-label="Back to the park"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <a class="me" id="me" href="../app/#go=me">
+      <span class="av" id="av">?</span>
+      <span class="mt"><b id="mn">Clubhouse</b><small id="ml">Sign in to play</small><span class="bar"><i id="mb"></i></span></span>
+      <span class="xp"><img src="../assets/img/coin.png" alt=""><b id="mx">0</b></span>
+    </a>
   </header>
-  <div class="hubtitle"><img src="../assets/img/team-logo.png" alt=""><div><h1>Team Clubhouse</h1><p>Games, cards, trades and challenges</p></div></div>
 
-  <section class="clxp" aria-label="Your progress">
-    <div><small>XP to spend</small><b><img src="../assets/img/coin.png" alt=""><span id="bank">0</span></b></div>
-    <div><small id="lvn">Rookie Ball</small><b id="lvxp">0 XP</b><span class="bar"><i id="lvbar"></i></span></div>
-  </section>
-
-  <div class="cltiles">
-    <a class="cltile big" href="../play/"><img src="../assets/img/games/derby.png" alt=""><span><b>Arcade</b><small>23 baseball games</small></span></a>
-    <a class="cltile" href="../app/#go=cards"><img src="../assets/img/binder.png" alt=""><b>Cards</b><small>Packs, binder, squad</small></a>
-    <a class="cltile" href="../app/#go=trade"><img src="../assets/img/chest-open.png" alt=""><b>Trades</b><small>Swap cards with teammates</small></a>
-    <a class="cltile" href="../app/#go=chal"><img src="../assets/img/bats.png" alt=""><b>Challenges</b><small>Beat a teammate's score</small></a>
-    <a class="cltile" href="../app/#go=boards"><img src="../assets/img/trophy.png" alt=""><b>Leaderboards</b><small>Top scores</small></a>
-    <a class="cltile" href="../app/#go=duel"><img src="../assets/img/glove.png" alt=""><b>Head-to-Head</b><small>Play live, same time</small></a>
-    <a class="cltile" href="film.html"><img src="../assets/img/cat/film.png" alt=""><b>Film Room</b><small>Fun videos that teach the game</small></a>
+  <div class="roomwrap">
+    <div class="room" id="room" tabindex="0" aria-label="The clubhouse. Swipe to look around, tap a spot to go there.">
+      <div class="stage" id="stage">
+        <img class="art" src="../assets/img/clubhouse-room.webp" alt="" draggable="false">
+        <a class="hs" href="film.html" style="left:10%;top:41%" data-k="film"><i></i><span>Film Room</span></a>
+        <a class="hs play" href="../play/" style="left:26%;top:50%" data-k="play"><i>▶</i><span>Arcade</span></a>
+        <a class="hs" href="../app/#go=chal" style="left:46%;top:37%" data-k="chal"><i></i><span>Challenges</span></a>
+        <a class="hs" href="../app/#go=duel" style="left:51%;top:71%" data-k="duel"><i></i><span>Head-to-Head</span></a>
+        <a class="hs" href="../app/#go=boards" style="left:70%;top:43%" data-k="boards"><i></i><span>Leaderboards</span></a>
+        <a class="hs" href="../app/#go=cards" style="left:72%;top:72%" data-k="cards"><i></i><span>Cards</span></a>
+        <a class="hs" href="../app/#go=trade" style="left:80%;top:89%" data-k="trade"><i></i><span>Trades</span></a>
+        <a class="hs" href="../locker/" style="left:92%;top:42%" data-k="locker"><i></i><span>My Locker</span></a>
+      </div>
+    </div>
+    <button class="pan l" data-pan="-1" aria-label="Look left">‹</button>
+    <button class="pan r" data-pan="1" aria-label="Look right">›</button>
+    <div class="look" id="look" aria-hidden="true">👆 Swipe to look around</div>
   </div>
+
+  <nav class="spots" aria-label="Clubhouse spots">
+    <a href="../play/" data-k="play"><img src="../assets/img/games/derby.png" alt=""><b>Arcade</b><small>23 games</small></a>
+    <a href="../app/#go=cards" data-k="cards"><img src="../assets/img/binder.png" alt=""><b>Cards</b><small>Packs + binder</small></a>
+    <a href="../app/#go=duel" data-k="duel"><img src="../assets/img/glove.png" alt=""><b>Head-to-Head</b><small>Play live</small></a>
+    <a href="../app/#go=chal" data-k="chal"><img src="../assets/img/bats.png" alt=""><b>Challenges</b><small>Beat a score</small></a>
+    <a href="../app/#go=boards" data-k="boards"><img src="../assets/img/trophy.png" alt=""><b>Leaderboards</b><small>Top scores</small></a>
+    <a href="../app/#go=trade" data-k="trade"><img src="../assets/img/chest-open.png" alt=""><b>Trades</b><small>Swap cards</small></a>
+    <a href="film.html" data-k="film"><img src="../assets/img/cat/film.png" alt=""><b>Film Room</b><small>Videos</small></a>
+    <a href="../locker/" data-k="locker"><img src="../assets/img/glove.png" alt=""><b>My Locker</b><small>Your gear</small></a>
+  </nav>
 </div>
 <script src="../assets/sound.js"></script>
 <script src="../assets/profile.js"></script>
-<script>
-(function () {
-  var p = Profile.data, L = Profile.level();
-  document.getElementById('xp').textContent = p.xp.toLocaleString();
-  document.getElementById('bank').textContent = (p.bank != null ? p.bank : p.xp).toLocaleString();
-  document.getElementById('lvn').textContent = 'Level ' + L.num + ' · ' + L.n;
-  document.getElementById('lvxp').textContent = p.xp.toLocaleString() + ' XP';
-  document.getElementById('lvbar').style.width = L.pct + '%';
-  document.querySelectorAll('.cltile').forEach(function (a) { a.addEventListener('click', function () { Sound.tone(660, .07, 'sine', .06); }); });
-})();
-</script>
+<script src="../assets/clubroom.js"></script>
 <script src="../assets/search.js"></script>
 </body>
 </html>
