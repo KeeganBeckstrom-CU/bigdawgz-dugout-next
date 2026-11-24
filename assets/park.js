@@ -73,7 +73,6 @@
   set('.dock a[href="locker/"]', parent ? R('fam') : R('locker'));
   set('.dock a[href="cards/"]', R('cards'));
   set('.dock a[href="packs/"]', R('cards'));
-  set('.dock a[href="museum/"]', R('cguide'));
   set('a.more', coach ? R('more') : parent ? R('acct') : R('me'));
   var sb = document.querySelector('a.sign[href^="app/"] .board b'), ss = document.querySelector('a.sign[href^="app/"] .board small');
   if (coach && sb) { sb.textContent = "Coach's View"; ss.textContent = 'Team'; }

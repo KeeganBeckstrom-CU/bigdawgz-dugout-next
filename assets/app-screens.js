@@ -168,36 +168,30 @@ window.zSteps = function () {
   if (typeof asg === 'undefined') return;
   var dates = { asg: '', qa: '' };
   function dayDiff(d) { return Math.round((new Date(d + 'T12:00:00') - new Date(today() + 'T12:00:00')) / 864e5); }
+  function add(n) { var d = new Date(today() + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+  /* the "Due in N days" chips are gone: coach just picks the due date */
   window.zDates = function () {
     try {
       [['adue', 'asg'], ['qdue', 'qa']].forEach(function (k) {
         var b = document.querySelector('#app [data-a^="' + k[0] + ':"]'); if (!b) return;
-        var row = b.parentElement; if (row.parentElement.querySelector('.zdate')) return;
-        if (dates[k[1]]) row.querySelectorAll('.fchip').forEach(function (c) { c.classList.remove('on'); });
-        row.insertAdjacentHTML('afterend', '<label class="zdate ' + (dates[k[1]] ? 'on' : '') + '"><img src="../assets/img/scoreboard.png" alt=""><span><b>Pick the day</b><small>' + (dates[k[1]] ? 'Shows up on ' + nice(dates[k[1]]) + ', due that day' : 'It shows up on their Home that day') + '</small></span><input type="date" data-zd="' + k[1] + '" min="' + today() + '" value="' + dates[k[1]] + '"></label>');
+        var row = b.parentElement, obj = k[1] === 'asg' ? asg : qa;
+        if (!dates[k[1]]) dates[k[1]] = add(+obj.due || 3);
+        var v = dates[k[1]];
+        row.insertAdjacentHTML('afterend', '<label class="zdate on"><img src="../assets/img/scoreboard.png" alt=""><span><b>Due date</b><small>Due ' + nice(v) + '</small></span><input type="date" data-zd="' + k[1] + '" min="' + today() + '" value="' + v + '"></label>');
+        row.remove();
       });
     } catch (e) {}
   };
   document.addEventListener('change', function (e) {
-    var i = e.target.closest('[data-zd]'); if (!i) return;
-    var w = i.dataset.zd, v = i.value; dates[w] = v;
-    if (v) { var n = Math.max(0, dayDiff(v)); if (w === 'asg') asg.due = n; else qa.due = n; }
+    var i = e.target.closest('[data-zd]'); if (!i || !i.value) return;
+    var w = i.dataset.zd; dates[w] = i.value < today() ? today() : i.value;
+    var n = Math.max(0, dayDiff(dates[w])); if (w === 'asg') asg.due = n; else qa.due = n;
     render();
   });
-  /* chips clear the picked day */
+  /* after sending, start the next assignment fresh */
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-a]'); if (!b) return;
-    var a = b.dataset.a;
-    if (/^adue:/.test(a)) dates.asg = '';
-    if (/^qdue:/.test(a)) dates.qa = '';
-    if ((a === 'send' && dates.asg) || (a === 'qsend' && dates.qa)) {
-      var d = a === 'send' ? dates.asg : dates.qa, pre = {};
-      S.players.forEach(function (p) { pre[p.id] = p.hw.length; });
-      setTimeout(function () {
-        S.players.forEach(function (p) { for (var k = pre[p.id]; k < p.hw.length; k++) { if (d > today()) p.hw[k].on = d; p.hw[k].due = d; } });
-        if (a === 'send') dates.asg = ''; else dates.qa = '';
-        save(); render();
-      }, 0);
-    }
+    if (b.dataset.a === 'send') setTimeout(function () { dates.asg = ''; }, 0);
+    if (b.dataset.a === 'qsend') setTimeout(function () { dates.qa = ''; }, 0);
   }, true);
 })();

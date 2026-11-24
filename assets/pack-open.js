@@ -104,7 +104,7 @@
       '<div class="pv-stage"><div class="pv-pack"><div class="pv-tilt">' +
       '<div class="pv-light"></div><img class="pv-body" src="' + art + '" alt="' + esc(PK.name) + ' pack" draggable="false"><img class="pv-strip" src="' + art + '" alt="" draggable="false"><div class="pv-seam"></div><div class="pv-gloss"></div>' +
       '</div></div></div>' +
-      '<div class="pv-hint"><span class="pv-finger"></span><b>Swipe across the top to rip it</b></div>' +
+      '<div class="pv-hint"><span class="pv-tap"></span><b>Tap the pack to open it</b></div>' +
       '<div class="pv-hand"></div><div class="pv-zoom"></div><div class="pv-call"></div>' +
       '<footer class="pv-foot"><button class="pv-all" type="button">Flip all</button><button class="cta pv-done" data-a="xpdone">Add to my binder</button></footer>';
     document.body.appendChild(O);
@@ -117,27 +117,17 @@
     armTear();
   }
 
-  /* ---------- tearing the strip ---------- */
+  /* ---------- tap the pack to open it ---------- */
   function armTear() {
-    var pack = q('.pv-pack'), down = false, x0 = 0, prog = 0, taps = 0, lastSnd = 0;
-    function set(p) {
-      prog = Math.max(prog, Math.min(1, p));
-      O.style.setProperty('--tear', prog.toFixed(3));
-      if (performance.now() - lastSnd > 45) { SND.crinkle(prog); lastSnd = performance.now(); if (prog > .2) buzz(4); }
-      if (prog >= 1) finish();
-    }
-    function pt(e) { var t = e.touches ? e.touches[0] : e; return t ? t.clientX : 0; }
-    function dn(e) { if (st.torn) return; down = true; x0 = pt(e); }
-    function mv(e) { if (!down || st.torn) return; var r = pack.getBoundingClientRect(); set(Math.abs(pt(e) - x0) / (r.width * .75)); if (e.cancelable) e.preventDefault(); }
-    function up() { down = false; }
-    pack.addEventListener('pointerdown', dn); window.addEventListener('pointermove', mv, { passive: false }); window.addEventListener('pointerup', up);
-    pack.addEventListener('touchstart', dn, { passive: true }); window.addEventListener('touchmove', mv, { passive: false }); window.addEventListener('touchend', up);
-    pack.addEventListener('click', function () { if (st.torn || prog > .05) return; taps++; set(taps / 2); });
-    function finish() {
-      if (st.torn) return; st.torn = true;
-      window.removeEventListener('pointermove', mv); window.removeEventListener('touchmove', mv);
+    var pack = q('.pv-pack');
+    function go(e) {
+      if (st.torn || !O.classList.contains('landed')) return;
+      if (e && e.cancelable) e.preventDefault();
+      st.torn = true; SND.crinkle(1); buzz(12);
+      O.style.setProperty('--tear', '1');
       burstOpen();
     }
+    pack.addEventListener('click', go);
   }
 
   async function burstOpen() {
@@ -152,9 +142,11 @@
   }
 
   /* ---------- cards shoot out of the pack into a fanned hand ---------- */
+  /* cards are laid out side by side in rows, no overlap (3 across, 2+2 for four) */
   function fanPos(i, n) {
-    var spread = Math.min(9, 34 / Math.max(1, n - 1)), a = n > 1 ? (i - (n - 1) / 2) * spread : 0;
-    return { a: a, x: (i - (n - 1) / 2) * Math.min(58, 210 / Math.max(1, n)), y: Math.abs(a) * 1.6 };
+    var per = n <= 3 ? n : n === 4 ? 2 : 3, W = Math.min(innerWidth, 480), cw = Math.min(W * .3, 128), gap = 10;
+    var row = Math.floor(i / per), inRow = Math.min(per, n - row * per), c = i - row * per, rows = Math.ceil(n / per);
+    return { a: 0, x: (c - (inRow - 1) / 2) * (cw + gap), y: row * (cw * 1.4 + gap) - (rows - 1) * (cw * 1.4 + gap) / 2 };
   }
   async function deal() {
     var hand = q('.pv-hand'), n = PK.cards.length, pr = box(q('.pv-pack')), hr = hand.getBoundingClientRect();
@@ -168,7 +160,7 @@
       e.style.setProperty('--fx', f.x + 'px'); e.style.setProperty('--fy', f.y + 'px'); e.style.setProperty('--fa', f.a + 'deg');
       e.animate([
         { transform: 'translate(' + sx + 'px,' + sy + 'px) scale(.35) rotate(0deg)', opacity: 0 },
-        { transform: 'translate(' + (sx + f.x * .3) + 'px,' + (sy - 170 - i * 12) + 'px) scale(.75) rotate(' + (f.a * 2) + 'deg)', opacity: 1, offset: .45 },
+        { transform: 'translate(' + (sx + (f.x - sx) * .4) + 'px,' + (sy - 140) + 'px) scale(.8) rotate(' + ((i % 2 ? 1 : -1) * 10) + 'deg)', opacity: 1, offset: .45 },
         { transform: 'translate(' + f.x + 'px,' + f.y + 'px) rotate(' + f.a + 'deg)', opacity: 1 }
       ], { duration: 620, delay: i * 120, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'backwards' });
       SND.whoosh(i);
@@ -240,14 +232,8 @@
     if (O && st.open.every(Boolean)) done();
   }
   function done() {
-    var els = O.querySelectorAll('.pv-hand .pv-card'), n = els.length, per = n <= 3 ? n : n === 4 ? 2 : 3, W = Math.min(innerWidth, 480);
-    var cw = Math.min(W * .3, 128), gap = 10;
-    els.forEach(function (e, i) {
-      var row = Math.floor(i / per), inRow = Math.min(per, n - row * per), col = i - row * per;
-      e.style.setProperty('--fx', ((col - (inRow - 1) / 2) * (cw + gap)) + 'px');
-      e.style.setProperty('--fy', (row * (cw * 1.4 + gap) - (Math.ceil(n / per) - 1) * (cw * 1.4 + gap) / 2) + 'px');
-      e.style.setProperty('--fa', '0deg');
-    });
+    var els = O.querySelectorAll('.pv-hand .pv-card'), n = els.length;
+    els.forEach(function (e, i) { var f = fanPos(i, n); e.style.setProperty('--fx', f.x + 'px'); e.style.setProperty('--fy', f.y + 'px'); e.style.setProperty('--fa', '0deg'); });
     O.classList.add('finished'); say('<b>Here’s what you pulled</b><small>Drag or tilt your phone to see them shine</small>');
     tiltTargets = [].slice.call(O.querySelectorAll('.pv-hand .pv-card'));
     fx.rain('#ffd35a', 50);
