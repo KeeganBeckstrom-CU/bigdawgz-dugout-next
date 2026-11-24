@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3c1e0c">
+<title>Film Room · BigDawgz Dugout</title>
+<link rel="icon" href="../assets/img/team-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/arcade/arcade.css">
+<link rel="stylesheet" href="../assets/drills/drills.css">
+<style>
+.film{margin-bottom:14px;padding:8px 8px 12px;border-radius:20px;background:linear-gradient(180deg,#8a5530,#6b3f1e);box-shadow:inset 0 0 0 2.5px #a8703f,inset 0 0 0 5px #5a3418,0 6px 14px rgba(40,20,8,.35)}
+.film .ivid{margin:0 0 8px}
+.film b{display:block;padding:0 6px;font-weight:700;font-size:17px;line-height:1.2}
+.film small{display:block;padding:2px 6px 0;font-weight:600;font-size:12.5px;color:#ffe27a}
+.film p{margin:6px 6px 8px;font-weight:500;font-size:14px;line-height:1.4;color:#fbe9cc}
+.film .fchip{margin-left:6px}
+</style>
+</head>
+<body>
+<img class="bgfill" src="../assets/img/park.jpg" alt="">
+<div class="app" id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="../assets/sound.js"></script>
+<script src="../assets/profile.js"></script>
+<script src="../assets/drills/data.js"></script>
+<script>
+(function () {
+  var F = DRL.FILMS, p = Profile.data, app = document.getElementById('app'), t = document.getElementById('toast');
+  p.seen = p.seen || {};
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function yt(u) { var m = String(u).match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : ''; }
+  function draw() {
+    app.innerHTML = '<header class="ghead"><a class="gx" href="./" aria-label="Back to the Clubhouse"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a><span><b>Clubhouse</b></span><span class="coins" aria-label="Your XP"><img src="../assets/img/coin.png" alt=""><b>' + p.xp.toLocaleString() + '</b></span></header>' +
+      '<div class="hubtitle"><img src="../assets/img/cat/film.png" alt=""><div><h1>Film Room</h1><p>Long videos that are fun and teach you the game</p></div></div>' +
+      F.map(function (f) {
+        var id = yt(f[3]);
+        return '<article class="film"><div class="ivid" id="fv-' + f[0] + '"><button class="vplay" data-play="' + f[0] + '" aria-label="Play ' + esc(f[1]) + '"><img src="https://i.ytimg.com/vi/' + id + '/hqdefault.jpg" alt="" onerror="this.remove()"><i>▶</i></button></div>' +
+          '<b>' + esc(f[1]) + '</b><small>' + esc(f[2]) + '</small>' + (f[4] ? '<p>' + esc(f[4]) + '</p>' : '') +
+          '<button class="fchip ' + (p.seen[f[0]] ? 'on' : '') + '" data-seen="' + f[0] + '">' + (p.seen[f[0]] ? '✓ Watched' : 'I watched it +10 XP') + '</button></article>';
+      }).join('');
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-play]');
+    if (b) { var f = F.find(function (x) { return x[0] === b.dataset.play; }); document.getElementById('fv-' + f[0]).innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yt(f[3]) + '?rel=0&modestbranding=1&playsinline=1&autoplay=1" title="' + esc(f[1]) + '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'; return; }
+    var s = e.target.closest('[data-seen]');
+    if (s && !p.seen[s.dataset.seen]) { p.seen[s.dataset.seen] = Profile.today(); var up = Profile.award(10); Sound.tone(880, .1, 'triangle', .07); t.textContent = up ? 'Level up! You\'re ' + up + '.' : 'Nice! +10 XP'; t.classList.add('on'); setTimeout(function () { t.classList.remove('on'); }, 2200); s.classList.add('on'); s.textContent = '✓ Watched'; }
+  });
+  draw();
+})();
+</script>
+</body>
+</html>
