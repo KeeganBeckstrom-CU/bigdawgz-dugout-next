@@ -41,15 +41,15 @@
   function grid(L) { return L.length ? '<div class="lgrid">' + L.map(libCard).join('') + '</div>' : '<div class="empty">Nothing matches. Try clearing a filter.</div>'; }
 
   /* ---------- library ---------- */
-  var lib = { q: '', cat: '', f: {} };
+  var lib = { q: '', cat: '', f: {}, w: '', spot: '' };
   function libList() {
     var q = lib.q.trim().toLowerCase();
     return D.filter(function (x) {
       return (!lib.cat || x.c === lib.cat) && (!q || (x.n + ' ' + (x.aka || '') + ' ' + x.why + ' ' + CAT[x.c].n).toLowerCase().indexOf(q) >= 0) &&
-        (!lib.f.solo || whosOf(x).indexOf('solo') >= 0) && (!lib.f.in || x.where === 'inside') && (!lib.f.quick || x.t <= 5) && (!lib.f.vid || x.v) && (!lib.f.cl || x.cl);
+        (!lib.f.solo || whosOf(x).indexOf('solo') >= 0) && (!lib.f.in || x.where === 'inside') && (!lib.w || x.where === lib.w) && (!lib.f.quick || x.t <= 5) && (!lib.f.vid || x.v) && (!lib.f.cl || x.cl);
     });
   }
-  function plain() { return !lib.q.trim() && !lib.cat && !Object.keys(lib.f).some(function (k) { return lib.f[k]; }); }
+  function plain() { return !lib.q.trim() && !lib.cat; }
   function shelves() {
     var by = {};
     libList().forEach(function (x) { (by[x.c] = by[x.c] || []).push(x); });
@@ -58,23 +58,47 @@
       return '<section class="shelf"><div class="shh"><b>' + catIcon(c.k, 'shi') + esc(c.n) + '</b><button data-a="cat:' + c.k + '">See all ' + by[c.k].length + ' ›</button></div><div class="srow">' + L.slice(0, 12).map(libCard).join('') + '</div></section>';
     }).join('');
   }
+  /* ---------- the field: tap a spot to open its drills ---------- */
+  var SPOTS = { of: [50, 13], field: [29, 42], run: [73, 44], pitch: [50, 55], hit: [50, 83], 'catch': [24, 80], 'throw': [12, 58], arm: [88, 62], ath: [15, 12], fun: [81, 12], iq: [80, 90] };
+  var SPOT_AT = { of: 'Outfield grass', field: 'Infield dirt', run: 'The bases', pitch: 'The mound', hit: 'Home plate', 'catch': 'Behind the plate', 'throw': 'Foul line', arm: 'The bullpen', ath: 'Weight room', fun: 'The backyard', iq: 'The dugout' };
+  function fieldMap() {
+    var by = {}; libList().forEach(function (x) { by[x.c] = (by[x.c] || 0) + 1; });
+    var spots = Object.keys(SPOTS).filter(function (k) { return CAT[k]; }).map(function (k) {
+      var n = by[k] || 0, c = CAT[k], q = SPOTS[k];
+      return '<button class="spot' + (lib.spot === k ? ' on' : '') + (n ? '' : ' none') + '" data-a="spot:' + k + '" style="left:' + q[0] + '%;top:' + q[1] + '%;--c:' + c.c + '" aria-pressed="' + (lib.spot === k) + '" aria-label="' + esc(c.n) + ', ' + n + ' drill' + (n === 1 ? '' : 's') + '">' + catIcon(k, 'si') + '<b>' + esc(c.n) + '</b><small>' + n + '</small></button>';
+    }).join('');
+    var svg = '<svg class="fld" viewBox="0 0 400 420" aria-hidden="true"><defs><radialGradient id="fg" cx="50%" cy="100%" r="100%"><stop offset="0" stop-color="#6fd06a"/><stop offset="1" stop-color="#3f9a45"/></radialGradient></defs>' +
+      '<path d="M200 395 L10 205 A270 270 0 0 1 390 205 Z" fill="url(#fg)" stroke="#2f7a35" stroke-width="4"/>' +
+      '<path d="M200 395 L60 255 A200 200 0 0 1 340 255 Z" fill="#c98a4b" opacity=".95"/>' +
+      '<path d="M200 345 L130 275 L200 205 L270 275 Z" fill="#5cbd5f" stroke="#fff" stroke-width="3"/>' +
+      '<circle cx="200" cy="275" r="17" fill="#c98a4b"/><rect x="194" y="272" width="12" height="4" fill="#fff"/>' +
+      '<g fill="#fff"><rect x="124" y="269" width="12" height="12" transform="rotate(45 130 275)"/><rect x="194" y="199" width="12" height="12" transform="rotate(45 200 205)"/><rect x="264" y="269" width="12" height="12" transform="rotate(45 270 275)"/><path d="M192 345h16v6l-8 7-8-7z"/></g>' +
+      '<path d="M200 395 L10 205 M200 395 L390 205" stroke="#fff" stroke-width="3"/></svg>';
+    return '<div class="fmap" role="group" aria-label="The field. Tap a spot to see its drills.">' + svg + spots + '</div>' + (lib.spot ? spotShelf(lib.spot) : '<p class="fmhint">Tap a spot on the field to open its drills.</p>');
+  }
+  function spotShelf(k) {
+    var c = CAT[k], L = libList().filter(function (x) { return x.c === k; }).sort(function (a, b) { return (!!b.v - !!a.v) || a.lv - b.lv; });
+    return '<section class="spsh" id="spsh" style="--c:' + c.c + '" aria-label="' + esc(c.n) + ' drills"><div class="spsh-h">' + catIcon(k, 'shi') + '<span><small>' + esc(SPOT_AT[k] || '') + '</small><b>' + esc(c.n) + '</b><em>' + esc(c.d || '') + '</em></span><button class="spx" data-a="spot:' + k + '" aria-label="Close ' + esc(c.n) + '">✕</button></div>' +
+      (L.length ? '<div class="srow">' + L.slice(0, 14).map(libCard).join('') + '</div><button class="spall" data-a="cat:' + k + '">See all ' + L.length + ' ' + esc(c.n) + ' drills ›</button>' : '<div class="empty">No ' + esc(c.n) + ' drills for this spot. Try Anywhere.</div>') + '</section>';
+  }
   function listHTML() {
-    if (plain()) return shelves();
+    if (plain()) return fieldMap();
     var L = libList();
     return '<h2 class="grp"><b>' + esc(lib.cat ? CAT[lib.cat].n : lib.f.in ? 'Living Room' : 'Drills') + '</b><span>' + L.length + '</span></h2>' + grid(L);
   }
   function libHTML() {
     var chip = function (k, t) { return '<button class="fchip ' + (lib.f[k] ? 'on' : '') + '" data-a="f:' + k + '">' + t + '</button>'; };
     var nIn = D.filter(function (x) { return x.where === 'inside'; }).length;
+    var wb = function (w, t) { return '<button class="wchip' + (lib.w === w ? ' on' : '') + '" data-a="w:' + w + '" aria-pressed="' + (lib.w === w) + '">' + t + '</button>'; };
+    var listTop = lib.cat ? '<button class="tofield" data-a="cat:' + lib.cat + '">‹ Back to the field</button>' : '';
     return back('../', 'Park') + title('<img src="' + IMG + 'bats.png" alt="">', 'Bullpen', D.length + ' drills, routines and games') +
-      '<a class="fhero" href="#finder"><img src="' + IMG + 'cat/goal.png" alt="" onerror="this.src=\'' + IMG + 'trophy.png\'"><span><small>Start here</small><b>What do you want to work on?</b><span>Pick a goal. We\'ll hand you the drills that build it.</span></span><i>›</i></a>' +
       '<label class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="Search drills…" value="' + esc(lib.q) + '" autocomplete="off" aria-label="Search drills"></label>' +
-      '<div class="cats"><button class="cat ' + (lib.f.in ? 'on' : '') + '" data-a="f:in" style="--c:#4EE1C1">' + '<img class="cic" src="' + IMG + 'cat/inside.png" alt="" onerror="this.outerHTML=\'<i class=&quot;cic em&quot;>🛋️</i>\'">' + '<b>Living Room</b><small>' + nIn + '</small></button>' +
-      X.CATS.map(function (c) { return '<button class="cat ' + (lib.cat === c.k ? 'on' : '') + '" data-a="cat:' + c.k + '" style="--c:' + c.c + '">' + catIcon(c.k) + '<b>' + esc(c.n) + '</b><small>' + D.filter(function (x) { return x.c === c.k; }).length + '</small></button>'; }).join('') + '</div>' +
-      '<div class="fr">' + chip('solo', 'By myself') + chip('quick', '5 min or less') + chip('vid', 'Has video') + chip('cl', 'Cleary') + (plain() ? '' : '<button class="fchip clr" data-a="clr">Clear ✕</button>') + '</div>' +
-      '<h2 class="grp"><b>Programs</b><span>and tools</span></h2>' +
+      '<div class="wrow" role="group" aria-label="Where are you?">' + wb('', 'Anywhere') + wb('inside', '🛋️ Indoors') + wb('yard', '🌳 Backyard') + wb('field', '🏟️ Field') + '</div>' +
+      '<div class="fr">' + chip('solo', 'By myself') + chip('quick', '5 min or less') + chip('vid', 'Has video') + chip('cl', 'Cleary') + (plain() && !lib.w ? '' : '<button class="fchip clr" data-a="clr">Clear ✕</button>') + '</div>' +
+      listTop + '<div id="list">' + listHTML() + '</div>' +
+      '<a class="fhero" href="#finder"><img src="' + IMG + 'cat/goal.png" alt="" onerror="this.src=\'' + IMG + 'trophy.png\'"><span><small>Not sure where to start?</small><b>What do you want to work on?</b><span>Pick a goal. We\'ll hand you the drills that build it.</span></span><i>›</i></a>' +
       '<a class="prog" href="#program"><img src="' + IMG + 'cat/throw.png" alt="" onerror="this.src=\'' + IMG + 'ball.png\'"><span><small>Featured</small><b>Cleary Throwing Program</b><span>The college warm-up, throw and arm-care plan, sized for 12U.</span></span><i>›</i></a>' +
-      '<div id="list">' + listHTML() + '</div>' + safeNote;
+      pathShelf() + safeNote;
   }
 
   /* ---------- skill paths ---------- */
@@ -246,9 +270,17 @@
     if (!b) { if (e.target === sheetEl) closeSheet(); var a = e.target.closest('a[href^="#d/"]'); if (a) { opened = true; S.tone(660, .06, 'sine', .05); } return; }
     var k = b.dataset.a, v = k.slice(k.indexOf(':') + 1);
     if (k === 'close') return closeSheet();
-    if (k.indexOf('cat:') === 0) { lib.cat = lib.cat === v ? '' : v; lib.f.in = false; if (location.hash.replace('#', '')) location.hash = '#'; rerender(); return; }
+    if (k.indexOf('cat:') === 0) { lib.cat = lib.cat === v ? '' : v; lib.f.in = false; if (lib.cat) lib.spot = lib.cat; if (location.hash.replace('#', '')) location.hash = '#'; rerender(); return; }
     if (k.indexOf('f:') === 0) { lib.f[v] = !lib.f[v]; if (v === 'in' && lib.f.in) lib.cat = ''; rerender(); return; }
-    if (k === 'clr') { lib = { q: '', cat: '', f: {} }; rerender(); return; }
+    if (k === 'clr') { lib = { q: '', cat: '', f: {}, w: '', spot: '' }; rerender(); return; }
+    if (k.indexOf('spot:') === 0) {
+      lib.spot = lib.spot === v ? '' : v; S.tone(lib.spot ? 620 : 440, .06, 'sine', .05);
+      var Ls = document.getElementById('list'); if (Ls) Ls.innerHTML = listHTML();
+      var sh = document.getElementById('spsh'); if (sh) { var r = sh.getBoundingClientRect(); if (r.bottom > innerHeight) scrollBy({ top: r.bottom - innerHeight + 16, behavior: 'smooth' }); var f = sh.querySelector('.lcard'); f && f.focus({ preventScroll: true }); }
+      else { var sp = document.querySelector('.spot[data-a="spot:' + v + '"]'); sp && sp.focus({ preventScroll: true }); }
+      return;
+    }
+    if (k.indexOf('w:') === 0) { lib.w = v; rerender(); return; }
     if (k.indexOf('fg:') === 0) { var i = fin.goals.indexOf(v); i >= 0 ? fin.goals.splice(i, 1) : fin.goals.push(v); if (!fin.goals.length) fin.open = true; finSave(); rerender(); return; }
     if (k === 'fdone') { fin.open = false; finSave(); rerender(); scrollTo(0, 0); return; }
     if (k === 'fopen') { fin.open = true; finSave(); rerender(); return; }
