@@ -64,6 +64,7 @@
     if (ph && !ph.querySelector('.phi')) { var k = TI[view] || 'team-logo'; ph.insertAdjacentHTML('afterbegin', '<img class="phi" src="' + I + k + '.png" alt="">'); }
     var nav = app.querySelector('.nav') || document.querySelector('nav.nav');
     if (nav && !nav.querySelector('.navpark')) nav.insertAdjacentHTML('afterbegin', '<a class="navpark" href="../"><span><img class="pi" src="' + I + 'park-btn.png" alt="" onerror="this.outerHTML=\'⛳\'"></span><small>Park</small></a>');
+    if (app.querySelector('.zhero')) app.querySelectorAll('.xphero').forEach(function (x) { x.remove(); });
     document.body.classList.toggle('pk-on', !S.who || view === 'pick');
   }
   var _r = render;
