@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3c1e0c">
+<title>More · BigDawgz Dugout</title>
+<link rel="icon" href="../assets/img/team-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/wip.css">
+</head>
+<body>
+<!-- Coach "More" tools that need team accounts: work in progress. -->
+<main class="app">
+  <img class="fill" src="../assets/img/park.jpg" alt="">
+  <a class="back" href="./"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>More</a>
+  <section class="panel">
+    <img class="hero" id="hero" src="../assets/img/cat/film.png" alt="">
+    <div class="tag"><img src="../assets/img/plank.png" alt=""><span>Work in progress</span></div>
+    <h1 id="t">More</h1>
+    <p id="d"></p>
+    <ul id="l"></ul>
+    <a class="home" href="./"><img src="../assets/img/button.png" alt=""><span>Back to More</span></a>
+  </section>
+</main>
+<script>
+(function () {
+  var P = {
+    filmrev: ['cat/film', 'Film review', 'Swings and pitches your players filmed for you.', ['Watch each clip', 'Send a note back', 'Mark it reviewed']],
+    pvids: ['cat/film', 'Player videos', 'Clips your players sent you.', ['Watch the clip', 'Send a note', 'The video is deleted after you watch it']],
+    vdb: ['scoreboard', 'Video database', 'Every video in the app in one list.', ['Who watched each video', 'How many times', 'When they last watched']],
+    hstab: ['scoreboard', 'Player high scores', 'One table with every player and every game.', ['Best score and level for each game', 'Games played', 'Sort by any game']],
+    inbox: ['chest-open', 'Drill inbox', 'Your saved TikTok, Instagram and Facebook videos.', ['Watch each saved video', 'Approve it to add a drill', 'Or deny it to clear it']],
+    vrev: ['cat/goal', 'Video review', 'Check every drill video in the library.', ['Watch each drill video', 'Check it fits the drill', 'Set where the clip starts and ends']],
+    qdrill: ['bats', 'Add a drill from a video', 'Turn any video into a drill.', ['Paste a YouTube, TikTok, Instagram or Facebook link', 'Name it and pick a category', 'It joins the library and you can assign it']],
+    pprof: ['glove', 'Player profiles', 'Everything about one player on one page.', ['Level, XP, streak, games played, videos watched', 'Activity, homework and arm', 'High scores, cards and gear, badges', 'Other sports and linked parents']],
+    acct: ['cat/star', 'My settings', 'Your account and app features.', ['Account details', 'Turn app features on or off, like Drill Reels']]
+  };
+  var k = (location.search.match(/t=(\w+)/) || [])[1], v = P[k] || P.filmrev;
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  document.getElementById('hero').src = '../assets/img/' + v[0] + '.png';
+  document.getElementById('t').textContent = v[1];
+  document.getElementById('d').textContent = v[2];
+  document.getElementById('l').innerHTML = v[3].map(function (x) { return '<li><img src="../assets/img/ball.png" alt="">' + esc(x) + '</li>'; }).join('');
+  document.title = v[1] + ' · BigDawgz Dugout';
+})();
+</script>
+</body>
+</html>
