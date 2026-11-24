@@ -32,7 +32,12 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function game(k) { return A.GAMES.find(function (g) { return g[0] === k; }); }
   document.getElementById('xp').textContent = p.xp.toLocaleString();
-  document.getElementById('hub').innerHTML = A.GGROUPS.map(function (gr) {
+  var FXG = [['derby', 'Home Run Derby', 'Swing for the fences. Lay off the bad ones.'], ['bases', 'Run the Bases', 'Read the ball, read the coach. Go or stay?'], ['glove', 'Gold Glove', 'Get in front of the grounder, then make the throw.'], ['ace', 'Ace', 'Pick the pitch, hit your spot, win the count.'], ['corn', 'Can of Corn', 'Read the fly ball, then hit your cutoff.']];
+  var fxHTML = '<h2 class="grp"><b>Play ball</b><span>new · play it out on the field</span></h2><div class="cards feat">' + FXG.map(function (g) {
+    var k = g[0], hs = p.hs[k], pips = [0, 1, 2, 3].map(function (i) { return '<i class="' + (p.best[i ? k + '_' + i : k] != null ? 'on' : '') + '"></i>'; }).join('');
+    return '<a class="gcard big" href="fx.html?g=' + k + '"><img src="../assets/img/games/' + k + '.png" alt=""><b>' + esc(g[1]) + '</b><small>' + esc(g[2]) + '</small><span class="meta"><span class="pips" aria-label="Levels finished">' + pips + '</span><span class="hs">' + (hs ? hs.s + ' pts' : '') + '</span></span></a>';
+  }).join('') + '</div>';
+  document.getElementById('hub').innerHTML = fxHTML + A.GGROUPS.map(function (gr) {
     return '<h2 class="grp"><b>' + esc(gr[0]) + '</b><span>' + esc(gr[1]) + '</span></h2><div class="cards">' + gr[2].map(function (k) {
       var g = game(k), hs = p.hs[k];
       var pips = [0, 1, 2, 3].map(function (i) { return '<i class="' + (p.best[i ? k + '_' + i : k] != null ? 'on' : '') + '"></i>'; }).join('');

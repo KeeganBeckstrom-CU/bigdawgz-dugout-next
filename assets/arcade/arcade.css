@@ -247,3 +247,8 @@ h1{margin:0 0 4px;font-weight:700;font-size:28px;line-height:1.05;text-shadow:0 
 
 @media (max-width:360px){.wrow i{width:44px;height:44px}.cards{gap:8px}.gcard{min-height:160px;padding:10px}}
 @media (prefers-reduced-motion: reduce){.gcard,.opts button,.lvb{transition:none}.gcard:hover{transform:none}}
+
+/* featured play-through games */
+.cards.feat .gcard.big{background:radial-gradient(120% 90% at 50% 0%,rgba(255,226,122,.22),transparent 60%),linear-gradient(180deg,#8a5530,#6b3f1e);box-shadow:inset 0 0 0 2.5px #ffd35a,inset 0 0 0 5px #5a3418,0 6px 14px rgba(40,20,8,.35)}
+.cards.feat .gcard.big img{width:72px;height:72px}
+.cards.feat .gcard.big:first-child{grid-column:1 / -1}

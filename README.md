@@ -12,6 +12,7 @@ Basepaths, the new BigDawgz Dugout app, built from scratch.
   - `assets/arcade/data.js` holds every question bank and setting, copied from `bigdawgz-dugout`.
   - `assets/arcade/engine.js` runs the games, `assets/arcade/arcade.css` is the look.
   - Progress (XP, best scores, high scores) is saved on the device for now (`assets/profile.js`), until accounts come back.
+- `play/fx.html?g=derby` (and `bases`, `glove`, `ace`, `corn`): five play-through games in full painted scenes (Home Run Derby, Run the Bases, Gold Glove, Ace, Can of Corn). Each one teaches while you play. Code in `assets/arcade/fx.js` and `fx.css`; scenes and players in `assets/img/fx/`.
 - One folder per section still to build, each a work-in-progress page:
   `bullpen/` (drills), `scoreboard/` (team), `daily/` (daily task), `locker/`, `cards/`, `packs/`, `museum/`.
 - `assets/`: styles, scripts and all the painted art (made in Google Flow).
